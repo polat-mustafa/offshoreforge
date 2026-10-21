@@ -210,7 +210,7 @@ class CustomWakeRequest(BaseModel):
     Positions are local metres: x east, y north, from any origin near the
     site (the frontend projects lon/lat equirectangularly about the site
     centroid). Turbine: a packaged reference model, default the IEA 15 MW
-    ("V236 class", SB-510).
+    ("15 MW class", SB-510).
     """
 
     x_m: list[float] = Field(min_length=1, max_length=150, description="Turbine x (east) [m]")

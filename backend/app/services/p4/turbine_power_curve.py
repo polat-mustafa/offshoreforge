@@ -1,7 +1,7 @@
 """
 IEC 61400-12-1 power curve of the SB-510 turbine for the P4 forecasting modules.
 
-SB-510's turbines are "V236 class" (Vestas V236-15.0 MW); Vestas publishes no power
+SB-510's turbines are vendor-neutral "15 MW class" machines with no vendor power
 curve, so the farm is modelled with the IEA 15 MW reference turbine â€” the official
 IEA Wind Task 37 table, the same data as P1 (``services/p1/turbine_models.py``).
 Every ML prediction is validated against this curve (Rule 1, physical constraints).
@@ -70,7 +70,7 @@ STANDARD_AIR_DENSITY: float = 1.225  # Reference air density of the table [kg/mÂ
 
 @dataclass(frozen=True)
 class TurbineSpec:
-    """SB-510 turbine ("V236 class") = the IEA 15 MW reference turbine.
+    """SB-510 turbine ("15 MW class") = the IEA 15 MW reference turbine.
 
     Every value comes from the official IEA Wind Task 37 workbook
     (``services/p1/turbine_models.py``); ``get_turbine_spec()`` fills it.

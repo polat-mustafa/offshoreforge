@@ -1,5 +1,5 @@
 """
-Build the SB-510 turbine model (15 MW "V236 class") for the 3D viewer.
+Build the SB-510 turbine model (15 MW-class) for the 3D viewer.
 
     blender --background --factory-startup --python scripts/blender/build_v236.py -- \
         public/models/v236.glb [preview.png]
@@ -264,7 +264,7 @@ bpy.context.scene.collection.children.link(col)
 
 # ══ Blade ══════════════════════════════════════════════════════════════════
 BLADE_L = 115.5
-# (span m, chord m, twist °, prebend m, sweep m) — V236-class planform, same
+# (span m, chord m, twist °, prebend m, sweep m) — 15 MW-class planform, same
 # table as the procedural fallback in Blade.tsx. Twist follows the BEM
 # optimum θ(r) = φ(r) − α_design at λ ≈ 9.3 (rated: 103 m/s tip, 11.1 m/s),
 # a ≈ 0.28, α ≈ 5°: φ = atan(U(1−a)/(Ωr)) → 9.5° at 35 m, ~0° at the tip.

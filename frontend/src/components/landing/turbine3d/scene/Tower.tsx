@@ -1,5 +1,5 @@
 /**
- * V236 offshore steel tower.
+ * 15 MW-class offshore steel tower.
  *
  * Dimensions:
  *   Base Ø: 10 m (at y=26, top of transition piece)

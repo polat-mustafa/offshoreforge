@@ -1,5 +1,5 @@
 /**
- * Procedural V236 blade loft (fallback while / if the Blender model is not
+ * Procedural 15 MW-class blade loft (fallback while / if the Blender model is not
  * loaded) — see Blade.tsx for the frame and station conventions.
  */
 
@@ -89,7 +89,7 @@ function airfoilProfile(family: AirfoilFamilyName): Float32Array {
   return pts;
 }
 
-// ─── Spanwise station table — V236-realistic ──────────────────────────────
+// ─── Spanwise station table — 15 MW-class ──────────────────────────────
 
 // ─── Lofter ───────────────────────────────────────────────────────────────
 

@@ -1,7 +1,7 @@
-/** Drawn blade length [m] (V236-class shape); rendered ×BLADE_DRAW_SCALE to the IEA 15 MW 241.35 m rotor. */
+/** Drawn blade length [m] (15 MW-class shape); rendered ×BLADE_DRAW_SCALE to the IEA 15 MW 241.35 m rotor. */
 export const BLADE_LENGTH_M = 115.5;
 
-// ─── Spanwise station table — V236-realistic ──────────────────────────────
+// ─── Spanwise station table — 15 MW-class ──────────────────────────────
 
 export interface Station {
   span: number;       // metres along blade axis (0 = root flange, 115.5 = tip)

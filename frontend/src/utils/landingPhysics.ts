@@ -163,7 +163,7 @@ export function arrayCableCurrentA(mw: number): number {
   return (Math.max(0, mw) * 1e6) / (Math.sqrt(3) * ARRAY_KV * 1e3);
 }
 
-// ── SB-510 turbine: V236 class, modelled with the IEA-15-240-RWT ──
+// ── SB-510 turbine: 15 MW class, modelled with the IEA-15-240-RWT ──
 // Power, thrust, rotor speed and pitch come from the official IEA 15 MW table
 // (constants/turbineModels.ts, same table as backend services/p1/turbine_models.py)
 // — Vestas publishes no V236 data. Low-speed direct drive: no gearbox, the

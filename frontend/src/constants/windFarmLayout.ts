@@ -1,5 +1,5 @@
 /**
- * Wind farm geography — 34 × 15 MW "V236 class" turbines (IEA 15 MW) in 6 strings (6-6-6-6-5-5),
+ * Wind farm geography — 34 × 15 MW-class turbines (IEA 15 MW) in 6 strings (6-6-6-6-5-5),
  * offshore substation, LIDAR, 108 km export route and grid connection.
  *
  * Site: energy basin PZP_44 of the Polish maritime spatial plan (Dz.U. 2021

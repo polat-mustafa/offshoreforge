@@ -21,7 +21,7 @@ RATED_MS = 10.6594  # IEA 15 MW: first table speed at 15 MW
 
 
 class TestTurbineSpec:
-    """The SB-510 turbine ("V236 class") is the IEA 15 MW reference turbine."""
+    """The SB-510 turbine ("15 MW class") is the IEA 15 MW reference turbine."""
 
     def test_spec_comes_from_the_official_table(self) -> None:
         spec = get_turbine_spec()

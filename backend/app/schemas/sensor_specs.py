@@ -40,7 +40,7 @@ class SensorSpec(BaseModel):
 class TurbineSensorGroup(BaseModel):
     """All sensors installed on a single SB-510 turbine (15 MW, direct drive)."""
 
-    turbine_model: str = 'IEA 15 MW reference turbine ("V236 class")'
+    turbine_model: str = 'IEA 15 MW reference turbine ("15 MW class")'
     sensors: list[SensorSpec]
     total_per_turbine: int
 

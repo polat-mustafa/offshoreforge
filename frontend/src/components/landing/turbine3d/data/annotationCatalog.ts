@@ -1,5 +1,5 @@
 /**
- * Static annotation catalog for the SB-510 turbine viewer (15 MW "V236 class",
+ * Static annotation catalog for the SB-510 turbine viewer (15 MW-class,
  * modelled with the IEA 15 MW reference turbine — Gaertner et al. 2020).
  *
  * Annotations are rendered in the 3D scene as circle nodes + optional

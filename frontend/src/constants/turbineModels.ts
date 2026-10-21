@@ -70,5 +70,5 @@ export const TURBINE_MODELS: Record<string, TurbineModel> = {
   },
 };
 
-/** SB-510 is modelled with the IEA 15 MW turbine ("V236 class"). */
+/** SB-510 is modelled with the IEA 15 MW turbine ("15 MW class"). */
 export const DEFAULT_TURBINE_ID = "IEA-15-240-RWT";

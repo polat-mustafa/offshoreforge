@@ -1,6 +1,6 @@
 /**
  * Educational content for the clickable parts of the SB-510 turbine (15 MW
- * "V236 class", modelled with the IEA 15 MW reference turbine — direct drive).
+ * "15 MW class", modelled with the IEA 15 MW reference turbine — direct drive).
  *
  * Each entry provides:
  * - Plain-language overview for non-engineers

@@ -1,6 +1,6 @@
 """Comprehensive tests for the Turbine Physics module — IEA 15 MW direct drive.
 
-The SB-510 turbine ("V236 class") is the IEA 15 MW reference turbine; the time-domain
+The SB-510 turbine ("15 MW class") is the IEA 15 MW reference turbine; the time-domain
 model uses its official ROSCO data (Cp/Ct table, DISCON.IN controller, ElastoDyn
 drivetrain) and must reproduce the official steady-state table.
 

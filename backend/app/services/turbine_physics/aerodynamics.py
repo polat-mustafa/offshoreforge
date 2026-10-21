@@ -1,4 +1,4 @@
-"""Aerodynamic model of the SB-510 turbine — IEA 15 MW reference rotor ("V236 class").
+"""Aerodynamic model of the SB-510 turbine — IEA 15 MW reference rotor ("15 MW class").
 
 Physics Layer
 ─────────────

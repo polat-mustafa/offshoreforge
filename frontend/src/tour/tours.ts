@@ -34,7 +34,7 @@ const controlRoom: Tour = {
       title: "Welcome to OffshoreForge",
       body:
         "OffshoreForge follows an offshore wind farm through its life: develop, design, build, operate. " +
-        "Its case study is SB-510, a 510 MW farm of 34 × 15 MW \"V236 class\" turbines (modelled with the IEA 15 MW reference turbine) in the southern Baltic. " +
+        "Its case study is SB-510, a 510 MW farm of 34 × 15 MW-class turbines (modelled with the IEA 15 MW reference turbine) in the southern Baltic. " +
         "Move with → and ←, leave with Esc.",
     },
     {

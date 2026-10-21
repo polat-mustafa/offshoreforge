@@ -2,7 +2,7 @@
  * Rotor hub — single aerodynamic ovoid built with LatheGeometry.
  *
  * The hub is the central casting that connects the three blades to the main
- * shaft. Modern Vestas spinners are blunt-nosed (NOT pointed cones); the
+ * shaft. Modern large-rotor spinners are blunt-nosed (NOT pointed cones); the
  * silhouette flows continuously from the rear flange, expands to the
  * blade-root equator (~6 m diameter), then tapers smoothly to a rounded
  * forward apex.
@@ -37,10 +37,10 @@ interface HubProps {
  *
  * Total length 12 m, max diameter 6 m.
  */
-// True ovoid (egg-shape) silhouette per real Vestas V236 spinner photos.
+// Generic ovoid (egg-shape) spinner silhouette, sized to the IEA 15 MW hub.
 // Front portion is a half-ellipsoid with semi-major a=7 m (length) and
 // semi-minor b=3 m (radius). The forward apex is intentionally blunt
-// (radius 1.0 m at y=7.5) — modern Vestas/Siemens nose cones are dome-like,
+// (radius 1.0 m at y=7.5) — modern large-turbine nose cones are dome-like,
 // not pointed cones. Profile sampled at ~30° increments along the ellipse
 // so the lathe surface stays smooth.
 const HUB_PROFILE: Vector2[] = [

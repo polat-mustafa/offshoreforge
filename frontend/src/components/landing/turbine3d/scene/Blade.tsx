@@ -1,10 +1,10 @@
 /**
- * V236 blade — lofted aerodynamic surface.
+ * 15 MW-class blade — lofted aerodynamic surface.
  *
  * Geometry: built from 12 spanwise stations, each with a 24-vertex airfoil
  * cross-section (NACA-style closed curve, half-cosine spaced). Stations carry
  * realistic chord, twist, prebend (forward curve, +Z), and aft sweep (+X)
- * derived from public data on Vestas V164/V236 and IEC 61400-1 reference
+ * derived from the IEA 15 MW reference blade and IEC 61400-1 reference
  * blades. Tip prebend = 5 m forward, twist = 22° peak → 1° tip, max chord
  * 6.4 m at r=0.17, sweep onset at r=0.7.
  *

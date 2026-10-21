@@ -15,8 +15,8 @@ below. If you re-use a dataset, follow its licence, not MIT. Per-layer details: 
   Ørsted, PSE, Orlen, Northland Power, Energinet, ENTSO-E or any other company or body
   named in it. Names and trademarks belong to their owners and are used only to describe
   real facts (who holds a permit, which turbine a real farm uses).
-- "V236 class" describes the turbine size. It is modelled with the open IEA-15-240-RWT,
-  not with Vestas data; the 3D model (`frontend/public/models/v236.glb`) is drawn by our own
+- "15 MW class" describes the turbine size only; SB-510 does not represent any vendor's
+  product. It is modelled with the open IEA-15-240-RWT, not with manufacturer data; the 3D model (`frontend/public/models/v236.glb`) is drawn by our own
   Blender script (`frontend/scripts/blender/build_v236.py`) from the IEA-15 report.
 - Not certified engineering software; do not use it for real design or operational decisions.
   Map geometry is not a legal boundary and is not for navigation.

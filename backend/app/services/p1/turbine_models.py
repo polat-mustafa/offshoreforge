@@ -7,7 +7,7 @@ masses and provenance, ``<id>.csv`` for the WISDEM steady-state operating table 
 power, Ct, pitch, rotor speed, Cp, thrust, torque — and, for the IEA 15 MW,
 ``<id>_rosco.json`` with the Cp/Ct/Cq(λ, β) surfaces, the ROSCO controller and
 the ElastoDyn drivetrain) and are written by ``scripts/fetch_turbine_curves.py``.
-SB-510 is modelled with the IEA 15 MW turbine as a "V236-class" machine: Vestas
+SB-510 is modelled with the IEA 15 MW turbine as a "15 MW-class" machine: Vestas
 publishes no power, thrust or drivetrain data for the V236-15.0 MW. Both IEA
 turbines are low-speed direct drives (no gearbox).
 
@@ -41,7 +41,7 @@ from app.core.exceptions import ValidationError
 
 DATA_DIR = Path(__file__).resolve().parents[2] / "data" / "turbines"
 
-#: SB-510 reference model ("V236 class").
+#: SB-510 reference model ("15 MW class").
 DEFAULT_TURBINE_ID = "IEA-15-240-RWT"
 
 

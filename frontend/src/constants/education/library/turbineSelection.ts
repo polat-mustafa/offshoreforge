@@ -3,7 +3,7 @@ import type { EducationContent } from "../../../types/education";
 export const turbineSelectionEducation: EducationContent = {
   id: "library.turbine-selection",
   title: "Turbine Selection — why a 15 MW direct-drive class?",
-  subtitle: "SB-510's \"V236 class\" choice and the open IEA-15-240-RWT model every module uses",
+  subtitle: "SB-510's \"15 MW class\" choice and the open IEA-15-240-RWT model every module uses",
   discipline: "Mechanical",
 
   overview:
@@ -14,7 +14,7 @@ export const turbineSelectionEducation: EducationContent = {
     "The V236 was selected because it is the only machine with full-scale serial production already underway on the Polish " +
     "Baltic (Baltic Power project, 76 units), being connected under PSE's grid code. Vestas publishes no power " +
     "curve, controller or drivetrain data for the V236, so OffshoreForge models every SB-510 turbine as a " +
-    "'V236-class' machine with the open IEA 15 MW reference turbine (Gaertner et al. 2020): 241.35 m rotor, rated " +
+    "'15 MW-class' machine with the open IEA 15 MW reference turbine (Gaertner et al. 2020): 241.35 m rotor, rated " +
     "10.66 m/s, low-speed direct drive. Every number in the platform comes from that published model.",
 
   simpleExplanation:
@@ -94,7 +94,7 @@ export const turbineSelectionEducation: EducationContent = {
         "Wake, blockage, electrical, availability and other losses (P1 loss cascade) reduce it to the net value",
       ],
       result:
-        "The V236-class turbine is selected. At 34 turbines it exactly fills the 510 MW PSE connection agreement slot, " +
+        "The 15 MW-class turbine is selected. At 34 turbines it exactly fills the 510 MW PSE connection agreement slot, " +
         "the supply chain, installation vessels and PSE grid-code experience of Baltic Power carry over (foundations stay " +
         "site-specific: SB-510's 37–51 m depths point to jackets), and Vestas announced in January 2024 a V236 " +
         "blade factory in Szczecin, Poland, planned to start operating in 2026.",
@@ -133,7 +133,7 @@ export const turbineSelectionEducation: EducationContent = {
         "competing 15 MW-class machine with a different drive-train philosophy " +
         "(no gearbox).",
       takeaway:
-        "Both machines are viable for Polish Baltic conditions. The V236 class was chosen here because Baltic " +
+        "Both machines are viable for Polish Baltic conditions. The 15 MW class was chosen here because Baltic " +
         "Power provides an immediately transferable reference; the open model the platform computes with is itself " +
         "a direct drive, like the SG 14-236 DD.",
       source: "offshorewind.biz, 20 May 2025 (FID) and 16 Feb 2024 (turbine choice)",
