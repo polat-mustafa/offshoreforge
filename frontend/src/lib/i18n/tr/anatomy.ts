@@ -1,11 +1,18 @@
-/** Turkish: nacelle anatomy — exploded 3D view, anatomy cards and drawing A-01 (constants/nacelleAnatomy, turbine3d/ui/AnatomyCard, schematic/anatomySheet). Source names, citations and part numbers stay as published. */
+/** Turkish: nacelle anatomy — exploded 3D view, anatomy panel and drawing A-01 (constants/nacelleAnatomy, turbine3d/ui/AnatomyPanel, schematic/anatomySheet). Source names, citations and part numbers stay as published. */
 export default {
   // ── viewer and card UI ──
-  "Click the nacelle to take it apart": "Parçalarına ayırmak için nasele tıklayın",
-  "Hover a part for its anatomy card · click it to pin": "Anatomi kartı için bir parçanın üzerine gelin · sabitlemek için tıklayın",
+  "Take the nacelle apart": "Naseli parçalarına ayır",
+  "Exploded view of the nacelle (3)": "Naselin patlatılmış görünümü (3)",
+  "Exploded view": "Patlatılmış görünüm",
+  Spread: "Açıklık",
   Reassemble: "Yeniden birleştir",
-  "How far apart": "Ayrılma miktarı",
-  "Close part card": "Parça kartını kapat",
+  "Nacelle anatomy": "Nasel anatomisi",
+  "{n} parts": "{n} parça",
+  "IEA 15 MW direct drive": "IEA 15 MW direkt tahrik",
+  "Numbers match drawing A-01 · masses: IEA 15 MW data": "Numaralar A-01 çizimiyle aynı · kütleler: IEA 15 MW verisi",
+  "All parts": "Tüm parçalar",
+  "Previous part": "Önceki parça",
+  "Next part": "Sonraki parça",
   "Failure rate": "Arıza oranı",
   "Typical failures": "Tipik arızalar",
   Maintenance: "Bakım",
@@ -18,9 +25,6 @@ export default {
   "No failure modes for this part in the sources used here.": "Burada kullanılan kaynaklarda bu parça için arıza türü yok.",
   "No sourced recommendation yet — follow the manufacturer's service manual.": "Henüz kaynaklı bir öneri yok — üreticinin servis kılavuzunu izleyin.",
   "our reading of": "yorumumuz:",
-  "{n} failure modes": "{n} arıza türü",
-  "{n} maintenance notes": "{n} bakım notu",
-  "Click the part for failures, maintenance and sources": "Arızalar, bakım ve kaynaklar için parçaya tıklayın",
   "Source tags open the publication; hover one for the full citation.": "Kaynak etiketleri yayını açar; tam künye için üzerine gelin.",
   // source tags
   "IEA 15 MW data": "IEA 15 MW verisi",
@@ -37,9 +41,12 @@ export default {
   Function: "Görev",
   "Mass t": "Kütle t",
   "Fail./yr": "Arıza/yıl",
-  tower: "kule",
-  "Centre lines: shaft axis (6° tilt not drawn), tower axis": "Eksen çizgileri: şaft ekseni (6° eğim çizilmedi), kule ekseni",
-  "Exploded schematic · proportions indicative": "Patlatılmış şema · oranlar yaklaşık",
+  "PARTS LIST": "PARÇA LİSTESİ",
+  "tower (reference)": "kule (referans)",
+  "ASSEMBLED · for reference": "BİRLEŞİK HAL · referans için",
+  "View from starboard · exploded · hidden edges dashed": "Sancak tarafından görünüş · patlatılmış · gizli kenarlar kesikli",
+  "Centre lines: shaft axis (6° tilt not drawn), tower axis · dimensions in m (IEA 15 MW)":
+    "Eksen çizgileri: şaft ekseni (6° eğim çizilmedi), kule ekseni · ölçüler m (IEA 15 MW)",
   "Mass: IEA 15 MW tabular data (Gaertner et al. 2020) · M: OffshoreForge model value only":
     "Kütle: IEA 15 MW tablo verisi (Gaertner vd. 2020) · M: yalnızca OffshoreForge model değeri",
   "Failures per turbine per year: a Carroll 2016 (offshore, geared 2–4 MW)": "Türbin başına yıllık arıza: a Carroll 2016 (açık deniz, dişli 2–4 MW)",

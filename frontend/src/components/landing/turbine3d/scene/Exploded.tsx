@@ -19,7 +19,8 @@ export function Exploded({ spec, children }: { spec: ExplodeSpec | undefined; ch
     const s = stage(explode.value, spec.delay);
     g.position.set(spec.offset[0] * s, spec.offset[1] * s, spec.offset[2] * s);
   });
-  return <group ref={ref}>{children}</group>;
+  // userData.exploded: its position is travel, not layout (the callouts trace it back)
+  return <group ref={ref} userData={{ exploded: true }}>{children}</group>;
 }
 
 /** Eases explode.value toward explode.target; mount once inside the Canvas. */

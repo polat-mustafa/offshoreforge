@@ -1,17 +1,19 @@
 /**
- * Anatomy card of a nacelle part (exploded view): what it does, its IEA 15 MW
- * data, published failure rates, failure modes and maintenance — each line
- * with the source it comes from (constants/nacelleAnatomy).
+ * Anatomy panel of the exploded view, docked at the left of the viewer:
  *
- *   AnatomyHoverCard  follows the pointer over a part (read-only preview)
- *   AnatomyCard       pinned when a part is clicked: same content, links work
+ *   list    every part with its item number (the balloons in 3D, drawing
+ *           A-01), function and IEA 15 MW mass; hovering a row highlights
+ *           the part, clicking it opens its card
+ *   card    what the part does, its IEA 15 MW data, published failure rates,
+ *           failure modes and maintenance — each line with the source it
+ *           comes from (constants/nacelleAnatomy); ‹ › step through the parts
  */
 
-import type { RefObject } from "react";
-import { ExternalLink, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 
 import {
   ANATOMY_SOURCES,
+  NACELLE_ANATOMY,
   anatomyOf,
   type AnatomyNote,
   type AnatomyPart,
@@ -71,37 +73,6 @@ function Section({ title, children }: { title: string; children: React.ReactNode
     <div className="border-t border-border-primary pt-1.5">
       <div className="mb-1 text-[10.5px] font-bold uppercase tracking-wide text-text-muted">{title}</div>
       {children}
-    </div>
-  );
-}
-
-/** Hover preview: role, the first data lines and the rates; the rest on the pinned card. */
-function AnatomySummary({ part }: { part: AnatomyPart }) {
-  return (
-    <div className="space-y-1.5 text-[12px] leading-snug text-text-primary">
-      <p className="text-text-secondary">{part.role}</p>
-      {part.facts.slice(0, 3).map((f) => (
-        <div key={f.label} className="flex justify-between gap-2">
-          <span className="text-text-secondary">{f.label}</span>
-          <span className="text-right font-semibold">
-            <span>{f.value}</span>
-            <Src id={f.src} linked={false} />
-          </span>
-        </div>
-      ))}
-      {part.rates.map((r) => (
-        <div key={r.label + r.src} className="flex justify-between gap-2">
-          <span className="text-text-secondary">{r.label}</span>
-          <span className="text-right font-semibold">
-            <span className="font-mono">{rateLine(r).perYear.toFixed(3)}</span> <span>per turbine per year</span>
-            <Src id={r.src} linked={false} />
-          </span>
-        </div>
-      ))}
-      <div className="flex flex-wrap gap-x-3 text-[11px] font-semibold text-text-muted">
-        <span>{part.failureModes.length} failure modes</span>
-        <span>{part.maintenance.length} maintenance notes</span>
-      </div>
     </div>
   );
 }
@@ -204,54 +175,111 @@ function Header({ part }: { part: AnatomyPart }) {
   );
 }
 
-/** Pinned card (a part was clicked in the exploded view). */
-export function AnatomyCard({ id, onClose }: { id: TurbinePartId; onClose: () => void }) {
-  const part = anatomyOf(id);
-  if (!part) return null;
+const rowCls = "flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left";
+
+function Balloon({ item, on }: { item: number; on?: boolean }) {
   return (
-    <div className="pointer-events-auto flex max-h-full w-[22rem] flex-col rounded-lg border border-border-primary bg-bg-secondary/95 shadow-xl backdrop-blur @max-lg:w-full">
-      <div className="flex items-start gap-2 border-b border-border-primary p-3">
-        <div className="min-w-0 flex-1">
-          <Header part={part} />
+    <span
+      className={cn(
+        "flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border-2 border-accent font-mono text-[11px] font-bold",
+        on ? "bg-accent text-accent-ink" : "text-accent",
+      )}
+    >
+      {item}
+    </span>
+  );
+}
+
+/** Parts list of the exploded view; hovering a row highlights the part in 3D. */
+function PartsList({ onSelect }: { onSelect: (id: TurbinePartId) => void }) {
+  const hovered = anatomyOf(useAnatomyHover((s) => s.part))?.item;
+  const setHover = useAnatomyHover((s) => s.set);
+  return (
+    <>
+      <div className="border-b border-border-primary px-3 pb-2 pt-2.5">
+        <div className="text-[14px] font-bold">Nacelle anatomy</div>
+        <div className="text-[11.5px] font-semibold text-text-muted">
+          <span>{NACELLE_ANATOMY.length} parts</span> · <span>IEA 15 MW direct drive</span>
         </div>
-        <button type="button" onClick={onClose} aria-label="Close part card" className="rounded p-1 hover:bg-bg-hover">
-          <X size={14} />
+      </div>
+      <ul className="min-h-0 flex-1 overflow-y-auto p-1.5" onPointerLeave={() => setHover(null)}>
+        {NACELLE_ANATOMY.map((p) => (
+          <li key={p.item}>
+            <button
+              type="button"
+              onClick={() => onSelect(p.ids[0])}
+              onPointerEnter={() => setHover(p.ids[0])}
+              className={cn(rowCls, hovered === p.item ? "bg-accent-muted" : "hover:bg-bg-hover")}
+            >
+              <Balloon item={p.item} on={hovered === p.item} />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[12.5px] font-semibold text-text-primary">{p.title}</span>
+                <span className="block truncate text-[11px] text-text-muted">{p.brief}</span>
+              </span>
+              {p.massT !== undefined && (
+                <span className="shrink-0 font-mono text-[11px] font-semibold text-text-secondary" translate="no">
+                  {p.massT.toFixed(1)} t
+                </span>
+              )}
+            </button>
+          </li>
+        ))}
+      </ul>
+      <div className="border-t border-border-primary px-3 py-1.5 text-[11px] font-semibold text-text-muted">
+        Numbers match drawing A-01 · masses: IEA 15 MW data
+      </div>
+    </>
+  );
+}
+
+/** Card of one part, with ‹ › to the neighbouring items. */
+function PartCard({ part, onSelect, onBack }: { part: AnatomyPart; onSelect: (id: TurbinePartId) => void; onBack: () => void }) {
+  const i = NACELLE_ANATOMY.indexOf(part);
+  const prev = NACELLE_ANATOMY[(i + NACELLE_ANATOMY.length - 1) % NACELLE_ANATOMY.length];
+  const next = NACELLE_ANATOMY[(i + 1) % NACELLE_ANATOMY.length];
+  const step = "flex items-center rounded p-1 text-text-secondary hover:bg-bg-hover hover:text-text-primary";
+  return (
+    <>
+      <div className="flex items-center gap-1 border-b border-border-primary px-1.5 py-1.5">
+        <button type="button" onClick={onBack} className="flex items-center gap-0.5 rounded px-1.5 py-1 text-[12px] font-semibold text-accent hover:bg-accent-muted">
+          <ChevronLeft size={14} /> All parts
+        </button>
+        <span className="ml-auto font-mono text-[11px] font-semibold text-text-muted">
+          {part.item} / {NACELLE_ANATOMY.length}
+        </span>
+        <button type="button" onClick={() => onSelect(prev.ids[0])} className={step} aria-label="Previous part" title={prev.title}>
+          <ChevronLeft size={15} />
+        </button>
+        <button type="button" onClick={() => onSelect(next.ids[0])} className={step} aria-label="Next part" title={next.title}>
+          <ChevronRight size={15} />
         </button>
       </div>
-      <div className="min-h-0 overflow-y-auto p-3">
+      <div className="border-b border-border-primary px-3 py-2">
+        <Header part={part} />
+      </div>
+      <div className="min-h-0 flex-1 overflow-y-auto px-3 py-2">
         <AnatomyContent part={part} linked />
         <p className="mt-2 flex items-center gap-1 text-[11px] font-semibold text-text-muted">
           <ExternalLink size={11} /> Source tags open the publication; hover one for the full citation.
         </p>
       </div>
-    </div>
+    </>
   );
 }
 
-const CARD_W = 336;
-
-/** Preview that follows the pointer while it is over a part. */
-export function AnatomyHoverCard({ containerRef, except }: { containerRef: RefObject<HTMLDivElement | null>; except?: TurbinePartId | null }) {
-  const { part: id, x, y } = useAnatomyHover();
-  const part = anatomyOf(id);
-  const box = containerRef.current?.getBoundingClientRect();
-  if (!part || !box || (except && part.ids.includes(except))) return null;
-  // beside the pointer, flipped to stay inside the viewer
-  const px = x - box.left;
-  const py = y - box.top;
-  const left = px + 18 + CARD_W > box.width ? Math.max(8, px - 18 - CARD_W) : px + 18;
-  const top = Math.min(Math.max(8, py - 40), Math.max(8, box.height - 300));
+/** Docked panel of the exploded view: the parts list, or the card of the selected part. */
+export function AnatomyPanel({ selected, onSelect }: { selected: TurbinePartId | null; onSelect: (id: TurbinePartId | null) => void }) {
+  const part = anatomyOf(selected);
   return (
     <div
-      className="pointer-events-none absolute z-30 rounded-lg border border-border-primary bg-bg-secondary/95 p-3 shadow-xl backdrop-blur"
-      style={{ left, top, width: CARD_W }}
-      role="tooltip"
+      className={cn(
+        "pointer-events-auto flex max-h-full w-[21rem] flex-col rounded-lg border border-border-primary bg-bg-secondary/95 text-text-primary shadow-xl backdrop-blur @max-lg:w-full",
+        // narrow viewer: only the card of a selected part, the balloons are the index
+        !part && "@max-3xl:hidden",
+      )}
+      data-testid="anatomy-panel"
     >
-      <Header part={part} />
-      <div className="mt-1.5">
-        <AnatomySummary part={part} />
-      </div>
-      <div className="mt-1.5 text-[11px] font-semibold text-accent">Click the part for failures, maintenance and sources</div>
+      {part ? <PartCard part={part} onSelect={onSelect} onBack={() => onSelect(null)} /> : <PartsList onSelect={onSelect} />}
     </div>
   );
 }

@@ -27,8 +27,8 @@
  * half too — otherwise the invisible half would catch clicks and hovers meant
  * for the parts behind it.
  *
- * Click: in cutaway the shell opens the exploded anatomy view; in the exploded
- * view it puts the nacelle back together; otherwise it selects the nacelle.
+ * Click: in cutaway the shell opens the exploded anatomy view; otherwise it
+ * selects the nacelle (in the exploded view: the cover's anatomy card).
  *
  * The nacelle shell does NOT rotate — the YawAssembly group handles yaw
  * rotation at the tower top. The nacelle sits at y=151, z-offset -5.
@@ -161,7 +161,6 @@ export const Nacelle = memo(function Nacelle({ viewerMode, selectedPart }: Nacel
   const handleClick = (e: { stopPropagation: () => void }) => {
     e.stopPropagation();
     if (viewerMode === "cutaway") setViewerMode("exploded");
-    else if (viewerMode === "exploded") setViewerMode("cutaway");
     else setSelectedPart("nacelle");
   };
 

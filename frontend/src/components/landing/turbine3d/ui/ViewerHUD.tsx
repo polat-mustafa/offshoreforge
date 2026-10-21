@@ -170,7 +170,7 @@ export const CameraModeBadge = memo(function CameraModeBadge() {
   else if (selectedPart) label = `→ ${selectedPart.replace(/_/g, " ")}`;
 
   return (
-    <div className="absolute top-2 left-40 z-10 @max-lg:hidden bg-bg-secondary/80 backdrop-blur-sm rounded px-2 py-0.5 border border-border-primary pointer-events-none">
+    <div className="@max-lg:hidden bg-bg-secondary/80 backdrop-blur-sm rounded px-2 py-0.5 border border-border-primary pointer-events-none">
       <span className="text-xs font-mono text-text-muted uppercase tracking-wider">
         {label}
       </span>

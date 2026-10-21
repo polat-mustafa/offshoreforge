@@ -104,7 +104,7 @@ export const V236Turbine = memo(function V236Turbine({
   const showInternals = viewerMode === "cutaway" || viewerMode === "exploded";
 
   // Anatomy hover (exploded view only): the nearest hit names the part; a hit
-  // on anything the anatomy does not cover clears the card.
+  // on anything the anatomy does not cover clears the highlight.
   const setHover = useAnatomyHover((s) => s.set);
   const exploded = viewerMode === "exploded";
   const onPointerMove = exploded
@@ -112,7 +112,7 @@ export const V236Turbine = memo(function V236Turbine({
         e.stopPropagation();
         let o: Object3D | null = e.object;
         while (o && !ANATOMY_IDS.has(o.name as TurbinePartId)) o = o.parent;
-        setHover(o ? (o.name as TurbinePartId) : null, e.nativeEvent.clientX, e.nativeEvent.clientY);
+        setHover(o ? (o.name as TurbinePartId) : null);
       }
     : undefined;
   const onPointerOut = exploded ? () => setHover(null) : undefined;
