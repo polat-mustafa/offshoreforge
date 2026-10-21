@@ -11,6 +11,7 @@ from app.services.p4.real_data import (
     QUANTILES,
     _ensemble_weights,
     build_features,
+    evaluate_real_dayahead,
     load_dataset,
     persistence_24h,
     power_curve_forecast,
@@ -41,6 +42,13 @@ def test_power_curve_is_monotonic_enough():
     p = np.clip((ws - 3) ** 3, 0, 900)
     out = power_curve_forecast(ws, p, np.array([2.0, 8.0, 20.0]))
     assert out[0] < out[1] < out[2] <= 900
+
+
+def test_power_curve_fills_calm_bins_below_the_first_trained_one():
+    # no training hour below 2 m/s: a calm test hour still gets a number, not NaN
+    ws = np.linspace(2, 25, 2000)
+    out = power_curve_forecast(ws, np.clip((ws - 3) ** 3, 0, 900), np.array([0.4, 1.5]))
+    assert np.all(np.isfinite(out))
 
 
 def test_features_hold_no_measured_value():
@@ -140,6 +148,19 @@ def test_endpoint_scores_every_forecast_on_the_same_hours(evidence):
     bands = zip(ser["p10_mw"], ser["p50_mw"], ser["p90_mw"], strict=True)
     assert all(a <= b <= c for a, b, c in bands)
     assert max(ser["p90_mw"]) <= body["source"]["capacity_mw"]
+
+    # 0 ≤ P ≤ capacity for every forecast behind the scores, including the offline LSTM / TFT
+    # (rule 1). Checked here, on the result the endpoint just computed (@cache): a test of its
+    # own would rerun the 2-minute cross-validation in another xdist worker.
+    h = evaluate_real_dayahead("dk2").hourly
+    for name, v in h.items():
+        if name in ("time_utc", "fold", "scored", "shap_p50", "nwp_ws_mean", "actual_mw"):
+            continue
+        vals = np.asarray(v, dtype=float)
+        vals = vals[np.isfinite(vals)]
+        assert vals.min() >= 0.0, name
+        assert vals.max() <= CAPACITY_MW + 1e-6, name
+    assert np.all(np.diff(h["xgb_q"][h["scored"]], axis=1) >= 0)  # quantiles never cross
 
 
 def test_deep_model_forecasts_are_bundled_per_hour():

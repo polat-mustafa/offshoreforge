@@ -39,6 +39,7 @@ below. If you re-use a dataset, follow its licence, not MIT. Per-layer details: 
 | Measured farm output (Rødsand 1/2, Kriegers Flak, Baltic Power …) | `backend/app/services/p4/data/entsoe_*`, `p5/data/` | ENTSO-E Transparency Platform, Actual Generation per Generation Unit (16.1.A) | Transparency Platform Terms of Use, source to be named. **Open point:** 16.1.A is not on ENTSO-E's list of data free for re-use (version of 28 Oct 2019), so republishing it needs the data owner's (the TSO's) consent |
 | DK2 offshore production and TSO forecasts | `backend/app/services/p4/data/dk2_*` | Energinet Energi Data Service | CC BY 4.0 |
 | NWP forecasts (ECMWF IFS, DWD ICON) | inside the P4 files | Open-Meteo Previous Runs API | CC BY 4.0 |
+| AI Academy figure data (excerpts and statistics of the two rows above) | `frontend/src/components/p4/academy/data/dk2_academy.json` | derived by `backend/scripts/build_academy_figures.py` from Energinet and Open-Meteo data | CC BY 4.0, sources credited in every figure caption |
 | CARE to Compare results (farms B, C) | `backend/app/services/digital_twin/data/care_farm_*.json` | Gück et al. 2024, Zenodo 10.5281/zenodo.14006163 | **CC BY-SA 4.0** (derived files stay CC BY-SA) |
 | Horns Rev 1 / Lillgrund wake data | `backend/app/services/p1/validation_data/pywake/` | PyWake (DTU Wind Energy, TOPFARM) | MIT, `LICENSE` in that folder |
 | Recorded API answers of the public demo | `frontend/demo-api/` | the backend above | as their sources; AIS vessel identities anonymised |

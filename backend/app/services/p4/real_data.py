@@ -55,7 +55,7 @@ from __future__ import annotations
 import csv
 import gzip
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import cache
 from pathlib import Path
 from typing import Any
@@ -169,8 +169,10 @@ def read_hourly(path: Path | None, time_utc: NDArray[np.datetime64]) -> dict[str
     with gzip.open(path, "rt", encoding="utf-8") as f:
         rows = list(csv.reader(f))
     hours = np.array([r[0].rstrip("Z") for r in rows[1:]], dtype="datetime64[h]")
-    pos = {h: i for i, h in enumerate(hours.tolist())}
-    idx = np.array([pos.get(h, -1) for h in time_utc.tolist()])
+    # integer hour keys: a datetime64 and the datetime from .tolist() do not hash alike on
+    # every NumPy version, so mixing them silently finds nothing
+    pos = {h: i for i, h in enumerate(hours.astype(np.int64).tolist())}
+    idx = np.array([pos.get(h, -1) for h in time_utc.astype(np.int64).tolist()], dtype=np.intp)
     vals = np.array([[float(v) for v in r[1:]] for r in rows[1:]])
     return {
         name: np.where(idx >= 0, vals[np.maximum(idx, 0), j], np.nan)
@@ -198,11 +200,9 @@ def build_features(ds: RealDataset) -> tuple[NDArray[np.float64], list[str]]:
 
 def persistence_24h(ds: RealDataset) -> NDArray[np.float64]:
     """P(t − 24 h) where that hour exists in the set, else NaN (gaps are not filled)."""
-    index = {t: i for i, t in enumerate(ds.time_utc.tolist())}
-    day = np.timedelta64(24, "h")
-    return np.array(
-        [ds.power_mw[index[t]] if (t := v - day) in index else np.nan for v in ds.time_utc]
-    )
+    hours = ds.time_utc.astype(np.int64).tolist()  # integer hours: see read_hourly
+    index = {h: i for i, h in enumerate(hours)}
+    return np.array([ds.power_mw[index[h - 24]] if h - 24 in index else np.nan for h in hours])
 
 
 def power_curve_forecast(
@@ -213,7 +213,9 @@ def power_curve_forecast(
     curve = np.full(bins.max() + 2, np.nan)
     for b in np.unique(bins):
         curve[b] = p_train[bins == b].mean()
-    # empty bins: carry the neighbour below (above the last bin = the last bin)
+    # empty bins: carry the neighbour below (above the last bin = the last bin); empty bins
+    # below the first filled one take its value, so calm test hours are not left as NaN
+    curve[: np.flatnonzero(~np.isnan(curve))[0]] = curve[~np.isnan(curve)][0]
     for i in range(1, len(curve)):
         if np.isnan(curve[i]):
             curve[i] = curve[i - 1]
@@ -267,6 +269,12 @@ class RealForecastResult:
     period: tuple[str, str]
     hours: int
     scored_hours: int
+    # per-hour arrays behind the scores, for offline analysis (scripts/build_academy_figures.py):
+    # time_utc, actual_mw, nwp_ws_mean, fold (−1 = never tested), scored, xgb_q (n, 9), one
+    # array per point forecast, shap_p50 (n, features + bias); conformal margin per fold [MW]
+    hourly: dict[str, NDArray[Any]] = field(default_factory=dict, repr=False, compare=False)
+    conformal_margin_mw: list[float] = field(default_factory=list)
+    feature_names: list[str] = field(default_factory=list)
 
 
 def _xgb_fold(
@@ -275,8 +283,9 @@ def _xgb_fold(
     train: NDArray[np.intp],
     test: NDArray[np.intp],
     seed: int,
-) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
-    """Conformalised quantiles (n_test, 9) [MW] and Σ|SHAP| of the P50 output per feature."""
+) -> tuple[NDArray[np.float64], NDArray[np.float64], float]:
+    """Conformalised quantiles (n_test, 9) [MW], SHAP of the P50 output per test hour
+    (n_test, features + bias) [MW] and the conformal margin [MW]."""
     model = xgb.XGBRegressor(
         objective="reg:quantileerror",
         quantile_alpha=np.array(QUANTILES),
@@ -299,8 +308,8 @@ def _xgb_fold(
     q = np.sort(model.predict(x[test]), axis=1)  # sort: quantiles never cross
     q = q + margin * (np.array(QUANTILES) - 0.5) / 0.4
     contribs = model.get_booster().predict(xgb.DMatrix(x[test]), pred_contribs=True)
-    shap: NDArray[np.float64] = np.abs(contribs[:, I50, :-1]).sum(axis=0)  # last = bias
-    return q, shap
+    shap: NDArray[np.float64] = contribs[:, I50, :]  # last column = bias (expected value)
+    return q, shap, margin
 
 
 def _ensemble_weights(
@@ -333,18 +342,27 @@ def evaluate_real_dayahead(site: str = "dk2", seed: int = 42) -> RealForecastRes
     quant = {XGB: np.full((n, len(QUANTILES)), np.nan), CLIM: np.full((n, len(QUANTILES)), np.nan)}
     point = {CURVE: nan.copy(), CLIM: nan.copy(), PERS: pers}
     if deep:
-        quant[TFT] = np.column_stack([deep[f"tft_q{round(100 * q)}_mw"] for q in QUANTILES])
-        point[LSTM] = deep["lstm_p50_mw"]
+        # the offline networks are not clipped (−126 … 1412 MW in the file): 0 ≤ P ≤ cap
+        quant[TFT] = np.column_stack(
+            [_clip(deep[f"tft_q{round(100 * q)}_mw"], cap) for q in QUANTILES]
+        )
+        point[LSTM] = _clip(deep["lstm_p50_mw"], cap)
         point[ENSEMBLE] = nan.copy()
     if tso is not None:
         point[TSO] = nan.copy()
     shap = np.zeros(len(names))
+    shap_rows = np.full((n, len(names) + 1), np.nan)
+    fold_of = np.full(n, -1)
+    margins: list[float] = []
     folds = list(TimeSeriesSplit(n_splits=N_SPLITS, gap=GAP_H).split(x))
 
     for k, (train, test) in enumerate(folds):
-        q, s = _xgb_fold(x, y, train, test, seed)
+        q, s, margin = _xgb_fold(x, y, train, test, seed)
         quant[XGB][test] = np.column_stack([_clip(c, cap) for c in q.T])
-        shap += s
+        shap += np.abs(s[:, :-1]).sum(axis=0)
+        shap_rows[test] = s
+        fold_of[test] = k
+        margins.append(round(margin, 2))
         point[CURVE][test] = _clip(
             power_curve_forecast(ws_mean[train], y[train], ws_mean[test]), cap
         )
@@ -438,4 +456,17 @@ def evaluate_real_dayahead(site: str = "dk2", seed: int = 42) -> RealForecastRes
         period=(str(ds.time_utc[0]) + ":00Z", str(ds.time_utc[-1]) + ":00Z"),
         hours=len(ds.time_utc),
         scored_hours=int(scored.sum()),
+        hourly={
+            "time_utc": t,
+            "actual_mw": y,
+            "nwp_ws_mean": ws_mean,
+            "fold": fold_of,
+            "scored": scored,
+            "xgb_q": quant[XGB],
+            **point,
+            **({"tft_q": quant[TFT]} if deep else {}),
+            "shap_p50": shap_rows,
+        },
+        conformal_margin_mw=margins,
+        feature_names=names,
     )

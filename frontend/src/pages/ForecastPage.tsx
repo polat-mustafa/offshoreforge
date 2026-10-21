@@ -5,8 +5,9 @@
  *   Day-ahead (real data)  measured Baltic offshore output forecast from the previous day's
  *                          NWP: XGBoost, LSTM, TFT, ensemble vs persistence, climatology,
  *                          a physics-only power curve and the TSO's own forecast
- *   AI Academy             the course: from "why forecast" to XGBoost, LSTM, TFT,
- *                          with interactive illustrations and narration (EN/TR)
+ *   AI Academy             the course: 14 chapters in five parts, from the grid's need for
+ *                          a forecast to the models, evaluation and operation — figures on
+ *                          the same real data, typeset equations, IEEE references (EN/TR)
  *   Concept map            how the ideas connect; click → lesson
  */
 

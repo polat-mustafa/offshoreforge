@@ -66,6 +66,11 @@
   --color-accent-muted: rgba(69, 200, 217, 0.14);
   --color-accent-ink: #032029;
 
+  /* ── Search highlight (components/search): amber, apart from the cyan "act here" ── */
+  --color-search-hit: rgba(240, 177, 62, 0.3);
+  --color-search-hit-active: #f0b13e;
+  --color-search-hit-ink: #0a1520;
+
   /* ── Shape: small radii, lines over shadows ── */
   --radius-sm: 3px;
   --radius-md: 4px;
@@ -298,6 +303,9 @@ body {
   --color-accent-hover: #0b4a45;
   --color-accent-muted: rgba(15, 94, 88, 0.12);
   --color-accent-ink: #ffffff;
+  --color-search-hit: rgba(233, 168, 35, 0.34);
+  --color-search-hit-active: #f2b53a;
+  --color-search-hit-ink: #121817;
   --color-status-normal: #125d32;
   --color-status-warning: #714900;
   --color-status-alarm: #962019;
@@ -425,11 +433,13 @@ body {
   --viz-1: #1a9fb1;
   --viz-2: #d0712b;
   --viz-3: #6a80e0;
+  --viz-4: #b08a1e;
 }
 .theme-storybook .bw-viz {
   --viz-1: #2a78d6;
   --viz-2: #eb6834;
   --viz-3: #1baf7a;
+  --viz-4: #eda100;
 }
 
 /* Engineering drawings: energised lines march in the power-flow direction */
@@ -528,4 +538,55 @@ body {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #1a6b36;
+}
+
+/* ── Header search (components/search) ────────────────────────────
+   Matches are painted with the CSS Custom Highlight API: no DOM change,
+   so React and the in-place translator keep their text nodes. */
+::highlight(of-search) {
+  background-color: var(--color-search-hit);
+  color: inherit;
+}
+::highlight(of-search-active) {
+  background-color: var(--color-search-hit-active);
+  color: var(--color-search-hit-ink);
+}
+/* the palette's box is its own focus cue (caret, accent icon) */
+.of-search-input:focus-visible {
+  outline: none;
+}
+/* the chosen match is ringed once on arrival */
+.of-search-ring {
+  box-shadow:
+    0 0 0 2px var(--color-search-hit-active),
+    0 0 0 6px color-mix(in srgb, var(--color-search-hit-active) 30%, transparent);
+  animation: of-search-ring 1.6s ease-out forwards;
+}
+@keyframes of-search-ring {
+  0% { opacity: 0; transform: scale(1.15); }
+  15% { opacity: 1; transform: scale(1); }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.of-search-overlay[data-state="open"] { animation: of-fade-in 120ms ease-out; }
+.of-search-panel[data-state="open"] { animation: of-search-in 140ms cubic-bezier(0.2, 0.9, 0.3, 1); }
+.of-find-bar { animation: of-search-drop 160ms ease-out; }
+@keyframes of-fade-in {
+  from { opacity: 0; }
+}
+/* transform only: Tailwind's -translate-x-1/2 centring lives in the separate `translate` property */
+@keyframes of-search-in {
+  from { opacity: 0; transform: translateY(-6px) scale(0.985); }
+}
+@keyframes of-search-drop {
+  from { opacity: 0; transform: translateY(-6px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .of-search-ring,
+  .of-search-overlay[data-state="open"],
+  .of-search-panel[data-state="open"],
+  .of-find-bar {
+    animation: none;
+  }
+  .of-search-ring { opacity: 0.9; }
 }
