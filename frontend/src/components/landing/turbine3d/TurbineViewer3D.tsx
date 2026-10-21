@@ -13,6 +13,13 @@
  *   7. Camera fly-to on part selection (eased, bounds-derived)
  *   8. Full post-processing stack: SMAA + SSAO + Bloom + Outline + Vignette
  *   9. Keyboard shortcuts (F, R, 1-3, S, Esc, +/-)
+ *  10. Nacelle anatomy: "Take the nacelle apart" (or a click on the shell in
+ *      cutaway, key 3) runs the animated exploded view; every part carries a
+ *      numbered balloon with a trace line to where it sits assembled, the
+ *      docked parts list and the part cards (role, IEA 15 MW data, failure
+ *      rates, failure modes, maintenance — constants/nacelleAnatomy) share
+ *      hover and selection with the 3D parts; the camera stays on the whole
+ *      assembly while parts are picked.
  */
 
 import { Suspense, useEffect, useMemo, useRef, useState, useCallback } from "react";
@@ -29,6 +36,7 @@ import {
 } from "@react-three/postprocessing";
 import { BlendFunction, ToneMappingMode } from "postprocessing";
 import * as THREE from "three";
+import { Boxes, RotateCcw } from "lucide-react";
 import type { Object3D } from "three";
 
 import {
@@ -74,7 +82,14 @@ import { WindProfile } from "./scene/WindProfile";
 import { CameraHeadingProbe } from "./hooks/useCameraHeading";
 import { WakeField } from "./scene/WakeField";
 import { FaultBeacon, ServiceCraft } from "./scene/FaultAndService";
-import { InNacelleFrame } from "./scene/InNacelleFrame";
+import { InNacelleFrame, NACELLE_YAW_NAME } from "./scene/InNacelleFrame";
+import { ExplodeDriver, HideWhenApart } from "./scene/Exploded";
+import { explode } from "./model/explode";
+import { useAnatomyHover } from "./model/anatomyHover";
+import { AnatomyPanel } from "./ui/AnatomyPanel";
+import { AnatomyCallouts } from "./ui/AnatomyCallouts";
+import { AnatomyProjector } from "./scene/AnatomyProjector";
+import { anatomyOf } from "../../../constants/nacelleAnatomy";
 import { HUB, SHAFT_TILT } from "./model/layout";
 import { TurbineSideView } from "./schematic/TurbineSideView";
 
@@ -120,7 +135,6 @@ function isWebGLAvailable(): boolean {
 
 interface TurbineSceneProps {
   turbineId: string;
-  explodedOffset: number;
   showHumanFigure: boolean;
   showThermal: boolean;
   showSensors: boolean;
@@ -143,7 +157,6 @@ interface TurbineSceneProps {
 
 function TurbineScene({
   turbineId,
-  explodedOffset,
   showHumanFigure,
   showThermal,
   showSensors,
@@ -181,17 +194,26 @@ function TurbineScene({
     Object.assign(window, { __bwViewer: { camera, controls, scene } });
   }, [camera, controls, scene]);
   const [outlineTargets, setOutlineTargets] = useState<Object3D[]>([]);
+  // Exploded view: the part under the pointer glows too (every group of its
+  // anatomy entry — e.g. all four yaw-brake calipers, cooler + coolant skid)
+  const hovered = useAnatomyHover((s) => (viewerMode === "exploded" ? s.part : null));
 
   useEffect(() => {
-    if (!selectedPart) { setOutlineTargets([]); return; }
-    const obj = scene.getObjectByName(selectedPart);
-    setOutlineTargets(obj ? [obj] : []);
-  }, [selectedPart, scene]);
+    const names = new Set<string>();
+    if (selectedPart) names.add(selectedPart);
+    for (const id of anatomyOf(hovered)?.ids ?? []) names.add(id);
+    if (names.size === 0) { setOutlineTargets([]); return; }
+    const found: Object3D[] = [];
+    scene.traverse((o) => { if (names.has(o.name)) found.push(o); });
+    setOutlineTargets(found);
+  }, [selectedPart, hovered, scene]);
 
   // ── Camera fly-to on part selection ─────────────────────────────
   const flyTo = useCameraFlyTo();
 
   useEffect(() => {
+    // exploded: picking a part opens its card; the camera keeps the whole assembly in view
+    if (useLandingStore.getState().viewerMode === "exploded") return;
     flyTo(selectedPart);
   }, [selectedPart, flyTo]);
 
@@ -199,14 +221,23 @@ function TurbineScene({
     if (resetNonce > 0) flyTo(null);
   }, [resetNonce, flyTo]);
 
-  // Entering cutaway/exploded with nothing selected: frame the nacelle so
-  // the opened shell is actually in view.
+  // Entering cutaway with nothing selected: frame the nacelle so the opened
+  // shell is actually in view. Exploded: frame the whole taken-apart nacelle
+  // from the open (starboard) side, a little aft and above, following yaw;
+  // aimed a little toward the rotor so the assembly sits right of the parts list.
   useEffect(() => {
-    const open = viewerMode === "cutaway" || viewerMode === "exploded";
-    if (open && interiorView === "3d" && !useLandingStore.getState().selectedTurbinePart) {
+    if (interiorView !== "3d") return;
+    if (viewerMode === "exploded") {
+      const yaw = scene.getObjectByName(NACELLE_YAW_NAME);
+      if (!yaw) return;
+      yaw.updateWorldMatrix(true, false);
+      const look = new THREE.Vector3(0, 148, 4).applyMatrix4(yaw.matrixWorld);
+      const eye = new THREE.Vector3(56, 174, -14).applyMatrix4(yaw.matrixWorld);
+      flyTo({ position: [eye.x, eye.y, eye.z], lookAt: [look.x, look.y, look.z] });
+    } else if (viewerMode === "cutaway" && !useLandingStore.getState().selectedTurbinePart) {
       flyTo("nacelle");
     }
-  }, [viewerMode, interiorView, flyTo]);
+  }, [viewerMode, interiorView, flyTo, scene]);
 
   // ── Scale-bar metric: metres per screen pixel at camera pivot distance
   useEffect(() => {
@@ -231,6 +262,8 @@ function TurbineScene({
   return (
     <>
       <SceneEnvironment timeOfDay={timeOfDay} skyPreset={skyPreset} />
+      <ExplodeDriver />
+      <AnatomyProjector active={viewerMode === "exploded" && interiorView === "3d"} />
 
       {/* Sea */}
       <SeaPlane />
@@ -253,7 +286,6 @@ function TurbineScene({
         turbineId={turbineId}
         selectedPart={selectedPart}
         viewerMode={viewerMode}
-        explodedOffset={explodedOffset}
         overridePitch={overridePitch}
         overrideRpm={overrideRpm}
         windMs={manualWindMs}
@@ -282,21 +314,24 @@ function TurbineScene({
         />
       )}
 
-      {/* Nacelle-frame overlays: follow yaw + tower lean */}
+      {/* Nacelle-frame overlays: follow yaw + tower lean. Those drawn at the
+          assembled positions hide while the nacelle is taken apart. */}
       <InNacelleFrame>
-        {showThermal && (viewerMode === "cutaway" || viewerMode === "exploded") && (
-          <ThermalOverlay turbineId={turbineId} />
-        )}
-        {showSensors && (viewerMode === "cutaway" || viewerMode === "exploded") && (
-          <SensorMarkers turbineId={turbineId} onSelectPart={onSelectPart} />
-        )}
-        {showPowerFlow && (
-          <SceneErrorBoundary area="power-flow">
-            <PowerFlowParticles turbineId={turbineId} />
-          </SceneErrorBoundary>
-        )}
-        <NacelleInteriorDetail turbineId={turbineId} viewerMode={viewerMode} showLabels={showAnnotations} />
-        {(viewerMode === "cutaway" || viewerMode === "exploded") && <HealthBadges turbineId={turbineId} />}
+        <HideWhenApart>
+          {showThermal && (viewerMode === "cutaway" || viewerMode === "exploded") && (
+            <ThermalOverlay turbineId={turbineId} />
+          )}
+          {showSensors && (viewerMode === "cutaway" || viewerMode === "exploded") && (
+            <SensorMarkers turbineId={turbineId} onSelectPart={onSelectPart} />
+          )}
+          {showPowerFlow && (
+            <SceneErrorBoundary area="power-flow">
+              <PowerFlowParticles turbineId={turbineId} />
+            </SceneErrorBoundary>
+          )}
+          <NacelleInteriorDetail turbineId={turbineId} viewerMode={viewerMode} showLabels={showAnnotations} />
+          {(viewerMode === "cutaway" || viewerMode === "exploded") && <HealthBadges turbineId={turbineId} />}
+        </HideWhenApart>
         {/* D5b — velocity triangles at three blade stations (shaft frame) */}
         {showWindTriangle && (
           <group position={HUB} rotation={[-SHAFT_TILT, 0, 0]}>
@@ -373,7 +408,8 @@ interface TurbineViewer3DProps {
 
 export default function TurbineViewer3D({ turbineId, turbine, expanded = false, onToggleExpand }: TurbineViewer3DProps) {
   const [webGLOk] = useState(() => isWebGLAvailable());
-  const [explodedOffset, setExplodedOffset] = useState(0);
+  // Exploded view: how far apart (slider); the animation itself runs in the scene
+  const [explodeAmount, setExplodeAmount] = useState(0);
   const [resetNonce, setResetNonce] = useState(0);
   const [showHumanFigure, setShowHumanFigure] = useState(false);
   const [dpr, setDpr] = useState(Math.min(window.devicePixelRatio, 2));
@@ -441,6 +477,8 @@ export default function TurbineViewer3D({ turbineId, turbine, expanded = false, 
   const setShowLossHUD = useLandingStore((s) => s.setShowLossHUD);
   const setShowCpWidget = useLandingStore((s) => s.setShowCpWidget);
   const resetViewerDefaults = useLandingStore((s) => s.resetViewerDefaults);
+  const exploded3d = viewerMode === "exploded" && interiorView === "3d";
+  const pinnedAnatomy = exploded3d && !!anatomyOf(selectedPart);
 
   // Auto-cutaway on interior part
   useEffect(() => {
@@ -483,9 +521,14 @@ export default function TurbineViewer3D({ turbineId, turbine, expanded = false, 
     return () => stopPolling(turbineId);
   }, [turbineId]);
 
+  // Exploded mode takes the nacelle apart, any other mode puts it back together
+  const clearHover = useAnatomyHover((s) => s.set);
   useEffect(() => {
-    if (viewerMode !== "exploded") setExplodedOffset(0);
-  }, [viewerMode]);
+    const apart = viewerMode === "exploded" ? 1 : 0;
+    explode.target = apart;
+    setExplodeAmount(apart);
+    if (!apart) clearHover(null);
+  }, [viewerMode, clearHover]);
 
   const handleResetCamera = useCallback(() => {
     // Full reset: clears all overlays, modes, sky, selection in the store,
@@ -494,7 +537,6 @@ export default function TurbineViewer3D({ turbineId, turbine, expanded = false, 
     setResetNonce((n) => n + 1);
     setManualRun(null);
     setWindOverride(null);
-    setExplodedOffset(0);
     setShowHumanFigure(false);
   }, [resetViewerDefaults]);
 
@@ -613,7 +655,6 @@ export default function TurbineViewer3D({ turbineId, turbine, expanded = false, 
         <Suspense fallback={null}>
           <TurbineScene
             turbineId={turbineId}
-            explodedOffset={explodedOffset}
             showHumanFigure={showHumanFigure}
             showThermal={showThermalOverlay}
             showSensors={showSensorMarkers}
@@ -708,21 +749,50 @@ export default function TurbineViewer3D({ turbineId, turbine, expanded = false, 
         />
       )}
 
+      {/* Nacelle anatomy: the way in, and in the exploded view how far apart / back together */}
+      {viewerMode !== "exploded" && interiorView === "3d" && (
+        <button
+          type="button"
+          onClick={() => setViewerMode("exploded")}
+          title="Exploded view of the nacelle (3)"
+          className="absolute left-1/2 top-12 z-20 flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-full border border-accent bg-bg-secondary/95 py-1 pl-2.5 pr-1.5 text-xs font-bold text-accent shadow-lg hover:bg-accent hover:text-accent-ink @max-3xl:bottom-[6.5rem] @max-3xl:top-auto"
+        >
+          <Boxes size={14} />
+          <span>Take the nacelle apart</span>
+          <kbd className="rounded border border-current px-1 font-mono text-[10px] leading-4 opacity-70">3</kbd>
+        </button>
+      )}
       {viewerMode === "exploded" && interiorView === "3d" && (
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 bg-bg-secondary/80 rounded px-3 py-1.5 border border-border-primary">
-          <span className="text-xs text-text-muted font-mono">Explode</span>
-          <input
-            type="range"
-            min={0}
-            max={1}
-            step={0.01}
-            value={explodedOffset}
-            onChange={(e) => setExplodedOffset(parseFloat(e.target.value))}
-            className="w-24 accent-accent"
-          />
-          <span className="text-xs text-text-muted font-mono w-6">{Math.round(explodedOffset * 100)}%</span>
+        <div className="absolute left-1/2 top-12 z-20 flex -translate-x-1/2 items-center gap-3 whitespace-nowrap rounded-full border border-border-primary bg-bg-secondary/95 py-1 pl-3.5 pr-1 shadow-lg @max-3xl:bottom-[6.5rem] @max-3xl:top-auto">
+          <span className="flex items-center gap-1.5 text-xs font-bold text-text-primary @max-lg:hidden">
+            <Boxes size={14} className="text-accent" /> Exploded view
+          </span>
+          <label className="flex items-center gap-2 text-xs font-semibold text-text-secondary">
+            <span>Spread</span>
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.01}
+              value={explodeAmount}
+              onChange={(e) => {
+                const v = parseFloat(e.target.value);
+                explode.target = v;
+                setExplodeAmount(v);
+              }}
+              className="w-24 accent-accent"
+            />
+          </label>
+          <button
+            type="button"
+            onClick={() => setViewerMode("cutaway")}
+            className="flex items-center gap-1 rounded-full bg-accent px-3 py-1 text-xs font-bold text-accent-ink hover:opacity-90"
+          >
+            <RotateCcw size={12} /> Reassemble
+          </button>
         </div>
       )}
+      {exploded3d && <AnatomyCallouts selected={selectedPart} onSelect={setSelectedPart} />}
 
       <ViewerLegend turbineId={turbineId} />
 
@@ -736,8 +806,7 @@ export default function TurbineViewer3D({ turbineId, turbine, expanded = false, 
       )}
 
       {/* HUD widgets */}
-      {interiorView === "3d" && <CompassWidget windDirectionDeg={compassWind} nacelleYawDeg={nacelleYaw} windMs={manualWindMs} />}
-      <CameraModeBadge />
+      {interiorView === "3d" && !exploded3d && <CompassWidget windDirectionDeg={compassWind} nacelleYawDeg={nacelleYaw} windMs={manualWindMs} />}
       <ScaleBar metresPerPixel={metresPerPixel} />
       <KeyboardHelp />
 
@@ -745,22 +814,32 @@ export default function TurbineViewer3D({ turbineId, turbine, expanded = false, 
           the drawings name the turbine in their own header */}
       {interiorView !== "drawings" && (
         <div className="pointer-events-none absolute left-2 top-2 z-20 flex flex-col items-start gap-1.5 @max-lg:flex-row @max-lg:items-center">
-          <div className="bg-bg-secondary/80 backdrop-blur-sm rounded px-2 py-0.5 border border-border-primary">
-            <span className="text-xs font-mono text-text-muted">{turbineId}</span>
-            <span className="text-xs font-mono text-text-muted opacity-60 ml-1 @max-lg:hidden">· 15 MW IEA-15-240-RWT</span>
+          <div className="flex items-center gap-1.5">
+            <div className="bg-bg-secondary/80 backdrop-blur-sm rounded px-2 py-0.5 border border-border-primary">
+              <span className="text-xs font-mono text-text-muted">{turbineId}</span>
+              <span className="text-xs font-mono text-text-muted opacity-60 ml-1 @max-lg:hidden">· 15 MW IEA-15-240-RWT</span>
+            </div>
+            <CameraModeBadge />
           </div>
           {onToggleExpand && interiorView === "3d" && <div className="pointer-events-auto">{expandButton}</div>}
         </div>
       )}
 
+      {/* Exploded: the parts list, or the card of the picked part (instead of the part guide) */}
+      {exploded3d && (
+        <div className="pointer-events-none absolute bottom-[4.5rem] left-3 top-[4.75rem] z-30 flex @max-lg:right-3 @max-lg:top-20">
+          <AnatomyPanel selected={pinnedAnatomy ? selectedPart : null} onSelect={setSelectedPart} />
+        </div>
+      )}
+
       {/* Expanded: component rail + info card for the selected part */}
-      {expanded && interiorView === "3d" && (
+      {expanded && interiorView === "3d" && !exploded3d && (
         <>
           {/* above the telemetry strip, which takes two text lines per chip on a phone */}
           <div className="pointer-events-none absolute inset-x-0 bottom-[4.5rem] z-20 flex justify-center px-40 @max-lg:bottom-[6rem] @max-lg:px-2">
             <PartRail selected={selectedPart} onSelect={setSelectedPart} />
           </div>
-          {selectedPart && turbineState && hiddenCardFor !== selectedPart && (
+          {selectedPart && turbineState && hiddenCardFor !== selectedPart && !pinnedAnatomy && (
             <div className="pointer-events-none absolute bottom-28 left-3 top-24 z-20 flex @max-lg:right-3">
               {/* closing hides the card only — the camera stays on the part */}
               <PartInfoCard part={selectedPart} turbine={turbineState} onClose={() => setHiddenCardFor(selectedPart)} />
@@ -784,8 +863,8 @@ export default function TurbineViewer3D({ turbineId, turbine, expanded = false, 
         </>
       )}
 
-      {/* Legend of the hub-height wake slice */}
-      <div className="pointer-events-none absolute bottom-10 right-2 z-10 rounded-md border border-border-primary bg-bg-secondary/90 px-2.5 py-1.5 @max-lg:hidden text-xs font-semibold text-text-primary shadow">
+      {/* Legend of the hub-height wake slice (not while the nacelle is taken apart) */}
+      <div className={`pointer-events-none absolute bottom-10 right-2 z-10 rounded-md border border-border-primary bg-bg-secondary/90 px-2.5 py-1.5 @max-lg:hidden text-xs font-semibold text-text-primary shadow${exploded3d ? " hidden" : ""}`}>
         <div className="mb-1 font-bold">Wake deficit at hub height (150 m)</div>
         <div className="h-2 w-44 rounded" style={{ background: "linear-gradient(90deg,#a9e3eb,#45c8d9,#12788c)" }} />
         <div className="flex justify-between font-mono text-xs text-text-secondary">

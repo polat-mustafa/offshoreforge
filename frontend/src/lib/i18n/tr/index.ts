@@ -8,6 +8,7 @@
 import type { Dictionary } from "..";
 
 import academy from "./academy";
+import anatomy from "./anatomy";
 import charts from "./charts";
 import commissioning from "./commissioning";
 import contentMisc from "./content-misc";
@@ -39,6 +40,7 @@ const tr: Dictionary = {
   ...eduP2,
   ...eduLibrary,
   ...eduParts,
+  ...anatomy,
   ...guides,
   ...contentMisc,
   ...evidence,

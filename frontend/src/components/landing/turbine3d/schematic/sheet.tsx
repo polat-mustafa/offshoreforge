@@ -134,7 +134,7 @@ export function Sheet({
         <line x1={236} x2={236} y1={56} y2={tb.h} stroke="currentColor" strokeWidth={0.8} />
         <line x1={300} x2={300} y1={56} y2={tb.h} stroke="currentColor" strokeWidth={0.8} />
         <text x={8} y={15} fontSize={10.5} fontWeight={800}>
-          {fleet.source === "sb510" ? "SB-510 CASE STUDY" : fleet.name.toUpperCase()} · {fleet.turbines.length} × 15 MW (IEA 15 MW) MW · {fleet.net.total_capacity_mw.toFixed(0)} MW
+          {fleet.source === "sb510" ? "SB-510 CASE STUDY" : fleet.name.toUpperCase()} · {fleet.turbines.length} × 15 MW (IEA 15 MW) · {fleet.net.total_capacity_mw.toFixed(0)} MW
         </text>
         <text x={8} y={38} fontSize={13} fontWeight={800}>{title}</text>
         <text x={8} y={51} fontSize={10} fontWeight={600} fillOpacity={0.8}>{subtitle}</text>

@@ -174,6 +174,16 @@ function turbineIcon(color: string) {
 /** Glyph size on the map: 2.5 D (≈ 600 m) as on the Layout canvas, kept between 10 and 36 px. */
 const TURBINE_SIZE_M = 600;
 
+/** What a click on a map label / equipment mark opens; kinds without one are not clickable. */
+const CLICK_HINT: Record<string, string | undefined> = {
+  oss: "transformers and export circuits",
+  statcom: "Q balance, STATCOM and shunt reactors (OSS + onshore)",
+  onshore: "onshore substation",
+  grid: "onshore substation and grid connection",
+  lidar: "LIDAR wind profile",
+  turbine: "turbine details",
+};
+
 const STATUS_WORD: Record<TurbineStatus, string> = {
   operating: "operating",
   curtailed: "curtailed",
@@ -356,10 +366,18 @@ function ControlRoomMapInner({
     return items;
   }, [ossAt, sb510, fleet]);
 
+  // Labels that open a panel are outlined chips ending in "›", with a "click: …" tooltip (as the
+  // array cables); the rest (Landfall) are plain chips.
+  const { num_reactors: nReactors, reactor_unit_mvar: reactorMvar } = fleet.net;
   const labels = useMemo(() => {
-    const out: { position: [number, number]; text: string; kind: string; color: RGBA }[] = [
+    const out: { position: [number, number]; text: string; kind: string; color: RGBA; id?: string; tip?: string }[] = [
       { position: ossAt, text: `OSS 66/220 kV · ${totalPowerMW.toFixed(0)} MW`, kind: "oss", color: pal.label },
-      { position: ossAt, text: `STATCOM ${statcomQ >= 0 ? "+" : ""}${statcomQ} Mvar`, kind: "statcom", color: pal.text },
+      {
+        position: ossAt,
+        text: `STATCOM ${statcomQ >= 0 ? "+" : ""}${statcomQ} Mvar${nReactors ? ` · ${nReactors} × ${reactorMvar} Mvar reactors` : ""}`,
+        kind: "statcom",
+        color: pal.text,
+      },
     ];
     if (sb510) {
       out.push({ position: ll(LANDFALL_GEO), text: "Landfall · Darłówko", kind: "landfall", color: pal.text });
@@ -367,17 +385,20 @@ function ControlRoomMapInner({
       if (zoom >= 11.5) out.push({ position: ll(LIDAR_GEO), text: `LIDAR ${kpis.freestreamWindMs.toFixed(1)} m/s`, kind: "lidar", color: pal.text });
     }
     for (const t of attention) {
-      out.push({ position: t.position, text: `${t.id} · ${t.mw.toFixed(1)} MW`, kind: "turbine", color: t.status === "fault" ? pal.alarm : pal.warn });
+      out.push({ position: t.position, text: `${t.id} · ${t.mw.toFixed(1)} MW`, kind: "turbine", id: t.id, color: t.status === "fault" ? pal.alarm : pal.warn });
     }
-    return out;
-  }, [ossAt, totalPowerMW, statcomQ, sb510, zoom, kpis.freestreamWindMs, attention, pal]);
+    return out.map((l) => {
+      const hint = CLICK_HINT[l.kind];
+      return hint ? { ...l, text: `${l.text} ›`, tip: `${l.text}\nclick: ${hint}` } : l;
+    });
+  }, [ossAt, totalPowerMW, statcomQ, nReactors, reactorMvar, sb510, zoom, kpis.freestreamWindMs, attention, pal]);
 
   const onLayerClick = useCallback(
     (info: PickingInfo) => {
       const o = info.object as { kind?: string; id?: string; seg?: CableFocus } | undefined;
       if (!o) return false;
       if (o.seg) setFocus(o.seg);
-      else if (o.id && info.layer?.id === "turbines") onTurbineClick(o.id);
+      else if (o.id && (info.layer?.id === "turbines" || o.kind === "turbine")) onTurbineClick(o.id);
       else if (o.kind === "oss") onOSSClick();
       else if (o.kind === "statcom") (onSTATCOMClick ?? onOSSClick)();
       else if (o.kind === "lidar") onLIDARClick?.();
@@ -515,12 +536,16 @@ function ControlRoomMapInner({
       characterSet: "auto",
       getTextAnchor: "start",
       getAlignmentBaseline: "center",
-      getPixelOffset: (d: (typeof labels)[number]) => (d.kind === "statcom" ? [16, 16] : d.kind === "turbine" ? [14, 0] : [16, 0]),
+      // STATCOM: its own chip under the OSS one
+      getPixelOffset: (d: (typeof labels)[number]) => (d.kind === "statcom" ? [16, 22] : d.kind === "turbine" ? [14, 0] : [16, 0]),
       background: true,
-      getBackgroundColor: (d: (typeof labels)[number]) => (d.kind === "statcom" ? [0, 0, 0, 0] : pal.labelBg),
+      getBackgroundColor: pal.labelBg,
+      // clickable chips: outlined in their own text colour
+      getBorderColor: (d: (typeof labels)[number]) => (d.tip ? alpha(d.color, 150) : [0, 0, 0, 0]),
+      getBorderWidth: 1,
       backgroundPadding: [5, 3],
       pickable: true,
-      updateTriggers: { getColor: pal, getBackgroundColor: pal },
+      updateTriggers: { getColor: pal, getBackgroundColor: pal, getBorderColor: pal },
     }),
     layers.wakeEffects &&
       wakes.badges.length > 0 &&
@@ -595,7 +620,9 @@ function ControlRoomMapInner({
         };
       }
       if (info.layer?.id === "equipment") {
-        return { text: String((o as { name: string }).name), style: box };
+        const { name, kind } = o as { name: string; kind: string };
+        const hint = CLICK_HINT[kind];
+        return { text: hint ? `${name}\nclick: ${hint}` : name, style: box };
       }
       if (info.layer?.id === "dts") return { text: dtsTip((o as { km: number }).km, dts), style: box };
       const tip = (o as { tip?: string; tooltip?: string }).tip ?? (o as { tooltip?: string }).tooltip;
@@ -703,6 +730,11 @@ function ControlRoomMapInner({
             wake: slower air
           </span>
         )}
+        {/* as the clickable map labels: an outlined chip ending in › */}
+        <span className="flex items-center gap-1.5">
+          <span translate="no" className="rounded-sm border border-border-secondary px-1 font-mono leading-none text-text-primary">›</span>
+          opens details
+        </span>
       </div>
 
       {/* phones: under the zoom buttons — the bottom corners hold the environment card and the Tutor button */}

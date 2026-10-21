@@ -11,19 +11,27 @@
  *       shaft frame at the hub centre, tilted 6° nose-up
  *         rotor (hub + 3 coned, pitched, deflecting blades)
  *         direct-drive generator + shaft (always; bearings, stator sections in cutaway)
+ *
+ * Exploded view: every part sits in an <Exploded> group that slides it out by
+ * its share of the shared explode amount (model/explode); the pointer over a
+ * part is reported to the anatomy hover card.
  */
 
 import { memo, useRef } from "react";
 import * as THREE from "three";
-import { Group } from "three";
-import { useFrame } from "@react-three/fiber";
+import { Group, type Object3D } from "three";
+import { useFrame, type ThreeEvent } from "@react-three/fiber";
 
+import { ANATOMY_IDS } from "../../../../constants/nacelleAnatomy";
 import type { TurbinePartId } from "../../../../constants/turbinePartEducation";
 import { selectTurbine, useLandingStore } from "../../../../store/landingStore";
 import { v236ThrustMN, v236TipDeflectionM, v236TowerTopDeflectionM } from "../../../../utils/landingPhysics";
 import { useYawRotation } from "../hooks/useYawRotation";
 import { HUB, PRECONE, ROTOR_RADIUS, SHAFT_TILT } from "../model/layout";
 import { useV236Model } from "../model/useV236Model";
+import { useAnatomyHover } from "../model/anatomyHover";
+import { EXPLODE_SHAFT, EXPLODE_YAW } from "../model/explode";
+import { Exploded } from "./Exploded";
 import { Anemometer } from "./Anemometer";
 import { Cooler } from "./Cooler";
 import { Drivetrain } from "./Drivetrain";
@@ -41,7 +49,6 @@ interface V236TurbineProps {
   turbineId: string;
   selectedPart: TurbinePartId | null;
   viewerMode: "normal" | "cutaway" | "exploded";
-  explodedOffset: number;
   showHumanFigure?: boolean;
   overridePitch?: number;
   overrideRpm?: number;
@@ -61,7 +68,6 @@ export const V236Turbine = memo(function V236Turbine({
   turbineId,
   selectedPart,
   viewerMode,
-  explodedOffset,
   overridePitch,
   overrideRpm,
   windMs = 11,
@@ -97,18 +103,36 @@ export const V236Turbine = memo(function V236Turbine({
 
   const showInternals = viewerMode === "cutaway" || viewerMode === "exploded";
 
+  // Anatomy hover (exploded view only): the nearest hit names the part; a hit
+  // on anything the anatomy does not cover clears the highlight.
+  const setHover = useAnatomyHover((s) => s.set);
+  const exploded = viewerMode === "exploded";
+  const onPointerMove = exploded
+    ? (e: ThreeEvent<PointerEvent>) => {
+        e.stopPropagation();
+        let o: Object3D | null = e.object;
+        while (o && !ANATOMY_IDS.has(o.name as TurbinePartId)) o = o.parent;
+        setHover(o ? (o.name as TurbinePartId) : null);
+      }
+    : undefined;
+  const onPointerOut = exploded ? () => setHover(null) : undefined;
+
   return (
-    <group position={[0, MUDLINE_Y, 0]}>
+    <group position={[0, MUDLINE_Y, 0]} onPointerMove={onPointerMove} onPointerOut={onPointerOut}>
       <group ref={leanRef}>
         <group position={[0, -MUDLINE_Y, 0]}>
           {/* Fixed structure */}
           <Monopile isSelected={selectedPart === "foundation"} turbineId={turbineId} />
           <Tower isSelected={selectedPart === "tower"} />
-          <YawAssembly isSelected={selectedPart === "yaw"} selectedPart={selectedPart} />
+          <Exploded spec={EXPLODE_YAW.yaw}>
+            <YawAssembly isSelected={selectedPart === "yaw"} selectedPart={selectedPart} />
+          </Exploded>
 
           {/* Yaw-driven group — children use yaw-frame (world-aligned) coordinates */}
           <group ref={nacelleGroupRef} name={NACELLE_YAW_NAME}>
-            <Nacelle viewerMode={viewerMode} selectedPart={selectedPart} />
+            <Exploded spec={EXPLODE_YAW.nacelle}>
+              <Nacelle viewerMode={viewerMode} selectedPart={selectedPart} />
+            </Exploded>
 
             {showInternals && (
               <>
@@ -118,20 +142,24 @@ export const V236Turbine = memo(function V236Turbine({
             )}
 
             <NacelleCrew turbineId={turbineId} />
-            <Cooler isSelected={selectedPart === "cooler"} />
-            <Anemometer isSelected={selectedPart === "anemometer"} />
+            <Exploded spec={EXPLODE_YAW.roof}>
+              <Cooler isSelected={selectedPart === "cooler"} />
+              <Anemometer isSelected={selectedPart === "anemometer"} />
+            </Exploded>
 
             {/* Shaft frame: hub centre, 6° nose-up tilt */}
             <group position={HUB} rotation={[-SHAFT_TILT, 0, 0]}>
-              <Rotor
-                turbineId={turbineId}
-                selectedPart={selectedPart}
-                overridePitch={overridePitch}
-                overrideRpm={overrideRpm}
-                windMs={windMs}
-                fieldMode={bladeFieldMode}
-              />
-              <Drivetrain selectedPart={selectedPart} explodedOffset={explodedOffset} internals={showInternals} />
+              <Exploded spec={EXPLODE_SHAFT.hub}>
+                <Rotor
+                  turbineId={turbineId}
+                  selectedPart={selectedPart}
+                  overridePitch={overridePitch}
+                  overrideRpm={overrideRpm}
+                  windMs={windMs}
+                  fieldMode={bladeFieldMode}
+                />
+              </Exploded>
+              <Drivetrain selectedPart={selectedPart} internals={showInternals} />
               {showFlow && <TipVortices
                 windMs={windMs}
                 rotorRpm={stopped ? 0 : overrideRpm ?? turbine?.rotorSpeedRpm ?? 0}
@@ -157,23 +185,27 @@ function NacelleFrame({ selectedPart }: { selectedPart: TurbinePartId | null }) 
   return (
     <>
       {model.bedplate && (
-        <mesh geometry={model.bedplate} name="bedplate" castShadow receiveShadow onClick={pick("bedplate")}>
-          <meshStandardMaterial
-            color={selectedPart === "bedplate" ? "#5cc3d2" : "#5b6b7a"}
-            metalness={0.3}
-            roughness={0.55}
-          />
-        </mesh>
+        <Exploded spec={EXPLODE_YAW.bedplate}>
+          <mesh geometry={model.bedplate} name="bedplate" castShadow receiveShadow onClick={pick("bedplate")}>
+            <meshStandardMaterial
+              color={selectedPart === "bedplate" ? "#5cc3d2" : "#5b6b7a"}
+              metalness={0.3}
+              roughness={0.55}
+            />
+          </mesh>
+        </Exploded>
       )}
       {model.converter && (
-        <mesh geometry={model.converter} name="converter" castShadow onClick={pick("converter")}>
-          <meshStandardMaterial
-            vertexColors
-            color={selectedPart === "converter" ? "#5cc3d2" : "#ffffff"}
-            metalness={0.5}
-            roughness={0.4}
-          />
-        </mesh>
+        <Exploded spec={EXPLODE_YAW.converter}>
+          <mesh geometry={model.converter} name="converter" castShadow onClick={pick("converter")}>
+            <meshStandardMaterial
+              vertexColors
+              color={selectedPart === "converter" ? "#5cc3d2" : "#ffffff"}
+              metalness={0.5}
+              roughness={0.4}
+            />
+          </mesh>
+        </Exploded>
       )}
     </>
   );

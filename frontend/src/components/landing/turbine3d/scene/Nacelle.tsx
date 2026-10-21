@@ -23,6 +23,12 @@
  * Cutaway mode uses a THREE.Plane clipping plane on the X axis (x < plane.constant
  * is removed). Animated from +6 → 0 on transition so the cut rolls in.
  * Requires `gl.localClippingEnabled = true` (set in TurbineViewer3D.tsx).
+ * Clipping only hides pixels, so the shell's raycast drops hits on the cut-away
+ * half too — otherwise the invisible half would catch clicks and hovers meant
+ * for the parts behind it.
+ *
+ * Click: in cutaway the shell opens the exploded anatomy view; otherwise it
+ * selects the nacelle (in the exploded view: the cover's anatomy card).
  *
  * The nacelle shell does NOT rotate — the YawAssembly group handles yaw
  * rotation at the tower top. The nacelle sits at y=151, z-offset -5.
@@ -106,6 +112,7 @@ export const Nacelle = memo(function Nacelle({ viewerMode, selectedPart }: Nacel
   const isSelected = selectedPart === "nacelle";
   const isCutaway = viewerMode === "cutaway" || viewerMode === "exploded";
   const setSelectedPart = useLandingStore((s) => s.setSelectedTurbinePart);
+  const setViewerMode = useLandingStore((s) => s.setViewerMode);
 
   // One plane shared by every shell mesh, defined in the NACELLE frame and
   // re-projected to world every frame (three.js clipping planes are world
@@ -132,6 +139,19 @@ export const Nacelle = memo(function Nacelle({ viewerMode, selectedPart }: Nacel
   });
 
   const clippingPlanes = isCutaway ? [clipPlane] : [];
+
+  // Raycast that ignores the clipped-away half (see header).
+  const cutOn = useRef(isCutaway);
+  cutOn.current = isCutaway;
+  const raycast = useMemo(
+    () =>
+      function clippedRaycast(this: THREE.Mesh, rc: THREE.Raycaster, hits: THREE.Intersection[]) {
+        const all: THREE.Intersection[] = [];
+        THREE.Mesh.prototype.raycast.call(this, rc, all);
+        for (const h of all) if (!cutOn.current || clipPlane.distanceToPoint(h.point) >= 0) hits.push(h);
+      },
+    [clipPlane],
+  );
   const ghostPlanes = isCutaway ? [ghostPlane] : [];
 
   const shellColor = isSelected ? "#7fb1ff" : metalPaintedShell.color;
@@ -140,7 +160,8 @@ export const Nacelle = memo(function Nacelle({ viewerMode, selectedPart }: Nacel
 
   const handleClick = (e: { stopPropagation: () => void }) => {
     e.stopPropagation();
-    setSelectedPart("nacelle");
+    if (viewerMode === "cutaway") setViewerMode("exploded");
+    else setSelectedPart("nacelle");
   };
 
   // Blender shell (single rounded envelope, rounded front face, panel seams,
@@ -153,7 +174,7 @@ export const Nacelle = memo(function Nacelle({ viewerMode, selectedPart }: Nacel
   if (model?.nacelle_shell) {
     return (
       <group ref={groupRef} position={[0, 151, -5]}>
-        <mesh geometry={model.nacelle_shell} name="nacelle" castShadow receiveShadow onClick={handleClick}>
+        <mesh geometry={model.nacelle_shell} name="nacelle" castShadow receiveShadow onClick={handleClick} raycast={raycast}>
           <meshPhysicalMaterial
             color={isSelected ? "#7fb1ff" : "#cfd3d1"}
             roughness={0.42}
@@ -167,7 +188,7 @@ export const Nacelle = memo(function Nacelle({ viewerMode, selectedPart }: Nacel
           />
         </mesh>
         {model.nacelle_detail && (
-          <mesh geometry={model.nacelle_detail} castShadow onClick={handleClick}>
+          <mesh geometry={model.nacelle_detail} castShadow onClick={handleClick} raycast={raycast}>
             <meshStandardMaterial color="#9aa1a6" roughness={0.4} metalness={0.8} clippingPlanes={clippingPlanes} />
           </mesh>
         )}
@@ -199,7 +220,7 @@ export const Nacelle = memo(function Nacelle({ viewerMode, selectedPart }: Nacel
         castShadow
         receiveShadow
         name="nacelle"
-        onClick={handleClick}
+        onClick={handleClick} raycast={raycast}
       >
         <meshPhysicalMaterial
           color={shellColor}
@@ -224,7 +245,7 @@ export const Nacelle = memo(function Nacelle({ viewerMode, selectedPart }: Nacel
         smoothness={4}
         position={[-5.5, -1, -2]}
         castShadow
-        onClick={handleClick}
+        onClick={handleClick} raycast={raycast}
       >
         <meshPhysicalMaterial
           color={sideColor}
@@ -243,7 +264,7 @@ export const Nacelle = memo(function Nacelle({ viewerMode, selectedPart }: Nacel
         smoothness={4}
         position={[5.5, -1, -2]}
         castShadow
-        onClick={handleClick}
+        onClick={handleClick} raycast={raycast}
       >
         <meshPhysicalMaterial
           color={sideColor}
@@ -262,7 +283,7 @@ export const Nacelle = memo(function Nacelle({ viewerMode, selectedPart }: Nacel
         smoothness={4}
         position={[0, -1, -7.5]}
         castShadow
-        onClick={handleClick}
+        onClick={handleClick} raycast={raycast}
       >
         <meshPhysicalMaterial
           color={sideColor}
@@ -279,7 +300,7 @@ export const Nacelle = memo(function Nacelle({ viewerMode, selectedPart }: Nacel
         geometry={COWLING_GEOM}
         position={[0, 4.5, -2]}
         castShadow
-        onClick={handleClick}
+        onClick={handleClick} raycast={raycast}
       >
         <meshPhysicalMaterial
           color={cowlColor}
@@ -299,7 +320,7 @@ export const Nacelle = memo(function Nacelle({ viewerMode, selectedPart }: Nacel
         smoothness={3}
         position={[0, 0.5, -10.06]}
         castShadow
-        onClick={handleClick}
+        onClick={handleClick} raycast={raycast}
       >
         <meshStandardMaterial
           color="#374151"
