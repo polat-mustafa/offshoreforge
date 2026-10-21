@@ -7,7 +7,7 @@
 
 import { DEFAULT_TURBINE_ID, TURBINE_MODELS, type TurbineModel } from "../constants/turbineModels";
 
-/** SB-510's turbine: V236 class, modelled with the IEA 15 MW reference turbine. */
+/** SB-510's turbine: 15 MW class, modelled with the IEA 15 MW reference turbine. */
 export const REFERENCE_TURBINE: TurbineModel = TURBINE_MODELS[DEFAULT_TURBINE_ID];
 
 export function turbineById(id: string | undefined): TurbineModel {

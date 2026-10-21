@@ -1,5 +1,5 @@
 /**
- * Interactive 3D viewer of the SB-510 turbine (15 MW "V236 class", modelled with the IEA 15 MW reference).
+ * Interactive 3D viewer of the SB-510 turbine (15 MW-class, modelled with the IEA 15 MW reference).
  *
  * Top-level canvas component — code-split via React.lazy.
  *

@@ -411,7 +411,7 @@ export default function AEPExplainer() {
                     <Stat label="Rotor swept area" value={SWEPT_AREA_M2.toLocaleString("en-GB").replace(/,/g, " ")} unit="m²" />
                     <Stat label="Cp at rated (electrical)" value={CP_RATED_ELECTRICAL.toFixed(2)} unit="< Betz 0.593" />
                   </div>
-                  <p className="text-xs text-text-muted">Curve: the IEA 15 MW reference turbine (IEA Wind Task 37, Apache-2.0) — the same table the backend wake model uses. SB-510 is a “V236 class” farm; Vestas publishes no V236 curve.</p>
+                  <p className="text-xs text-text-muted">Curve: the IEA 15 MW reference turbine (IEA Wind Task 37, Apache-2.0) — the same table the backend wake model uses. SB-510 is a “15 MW class” farm; Vestas publishes no V236 curve.</p>
                 </>
               )}
               {step === 2 && (

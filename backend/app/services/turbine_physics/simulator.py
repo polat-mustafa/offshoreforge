@@ -3,7 +3,7 @@
 Physics Layer
 ─────────────
 Combines aerodynamics, rotor dynamics, the direct-drive drivetrain, pitch control
-and yaw control of the SB-510 turbine (IEA 15 MW, "V236 class") into a complete
+and yaw control of the SB-510 turbine (IEA 15 MW, "15 MW class") into a complete
 turbine simulation.  Each timestep follows
 the causal chain:
 

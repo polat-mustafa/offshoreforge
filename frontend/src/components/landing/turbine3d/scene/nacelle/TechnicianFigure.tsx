@@ -1,7 +1,7 @@
 /**
  * TechnicianFigure — low-poly offshore service technician at nacelle catwalk.
  *
- * Provides a 1.85 m scale reference so viewers grasp the V236 nacelle size
+ * Provides a 1.85 m scale reference so viewers grasp the 15 MW-class nacelle size
  * (20 m long × 9 m tall ≈ 10 × human height). Stylised geometry only —
  * helmet, torso, legs in safety-orange overalls + yellow hard hat.
  *

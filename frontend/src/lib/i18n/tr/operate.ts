@@ -87,8 +87,8 @@ export default {
   "SCADA backend unreachable": "SCADA backend'ine ulaşılamıyor",
 
   // Control room
-  'SB-{n1} reference · {n2} × {n3} MW "V236 class" (IEA-{n4}-{n5}-RWT model) = {n6} MW · Polish Baltic Sea · live simulation':
-    'SB-{n1} referansı · {n2} × {n3} MW "V236 sınıfı" (IEA-{n4}-{n5}-RWT modeli) = {n6} MW · Polonya Baltık Denizi · canlı benzetim',
+  'SB-{n1} reference · {n2} × {n3} MW-class (IEA-{n4}-{n5}-RWT model) = {n6} MW · Polish Baltic Sea · live simulation':
+    'SB-{n1} referansı · {n2} × {n3} MW sınıfı (IEA-{n4}-{n5}-RWT modeli) = {n6} MW · Polonya Baltık Denizi · canlı benzetim',
   "Wind Farm Overview — Real-Time Status Map": "Santral genel bakışı — gerçek zamanlı durum haritası",
   "Wind Farm Overview": "Santral genel bakışı",
   "New here?": "Yeni misiniz?",

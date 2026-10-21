@@ -64,8 +64,8 @@ export default {
   "(how steady).": "(ne kadar kararlı).",
   "These sliders also set the inputs for": "Bu kaydırıcılar şunun girdilerini de ayarlar:",
   "The turbine turns wind into power — non-linearly.": "Türbin rüzgârı güce dönüştürür — doğrusal olmayan biçimde.",
-  "Curve: the IEA 15 MW reference turbine (IEA Wind Task 37, Apache-2.0) — the same table the backend wake model uses. SB-510 is a “V236 class” farm; Vestas publishes no V236 curve.":
-    "Eğri: IEA 15 MW referans türbini (IEA Wind Task 37, Apache-2.0) — backend iz modelinin kullandığı tabloyla aynı. SB-510 “V236 sınıfı” bir santraldir; Vestas V236 eğrisi yayımlamaz.",
+  "Curve: the IEA 15 MW reference turbine (IEA Wind Task 37, Apache-2.0) — the same table the backend wake model uses. SB-510 is a “15 MW class” farm; Vestas publishes no V236 curve.":
+    "Eğri: IEA 15 MW referans türbini (IEA Wind Task 37, Apache-2.0) — backend iz modelinin kullandığı tabloyla aynı. SB-510 “15 MW sınıfı” bir santraldir; Vestas V236 eğrisi yayımlamaz.",
   "Energy = hours × power": "Enerji = saat × güç",
   "Faint bars = hours per year (shape only). Gross = before any wake or other loss.":
     "Soluk çubuklar = yıllık saat (yalnızca şekil). Brüt = iz veya başka kayıplardan önce.",

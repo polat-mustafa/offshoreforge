@@ -13,7 +13,7 @@ Provides REST endpoints for:
 All endpoints follow the convention: /api/v1/grid/{resource}
 
 Data approach: uses Pandapower for physics-based simulation
-of the 510 MW offshore wind farm network (34 × 15 MW "V236 class" = IEA 15 MW,
+of the 510 MW offshore wind farm network (34 × 15 MW-class = IEA 15 MW,
 66 kV array, 220 kV export, 400 kV PSE grid) — or of the learner's own farm
 when the request carries the ``X-Farm`` header (routers/farm_spec.py).
 """

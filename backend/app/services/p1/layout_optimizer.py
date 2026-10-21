@@ -1,5 +1,5 @@
 """
-Wind farm layout generation for 34 × 15 MW turbines (IEA 15 MW, "V236 class").
+Wind farm layout generation for 34 × 15 MW turbines (IEA 15 MW, "15 MW class").
 
 Physics
 -------

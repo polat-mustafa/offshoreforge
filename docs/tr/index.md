@@ -1,6 +1,6 @@
 # OffshoreForge — Türkçe
 
-510 MW'lık Baltık Denizi açık deniz rüzgâr çiftliği simülasyonu: 34 × 15 MW "V236 sınıfı" (IEA 15 MW referans türbini), 66 kV iç dizi,
+510 MW'lık Baltık Denizi açık deniz rüzgâr çiftliği simülasyonu: 34 × 15 MW sınıfı (IEA 15 MW referans türbini), 66 kV iç dizi,
 220 kV ihraç kablosu (108 km), 400 kV PSE bağlantısı.
 
 - [Kullanıcı Kılavuzu](../KULLANICI_KILAVUZU.md): kurulum ve kullanım.

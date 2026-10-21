@@ -90,7 +90,7 @@ All five projects use a consistent reference scenario based on real Baltic Sea p
 | Farm Name | SB-510 (fictional) | Based on real Polish Baltic Sea projects |
 | Location | Polish EEZ, MSP energy basin PZP_44, ~50 km north of Ustka | Real site 44.E.1 (permit PGE / Baltica 9, 2023), used fictionally; moved there 2026-10 from shipping basin PZP_15 |
 | Capacity | 510 MW (scalable to 1.2 GW analysis) | Educational scale aligned with V236-15.0 class |
-| Turbines | 34 × 15 MW "V236 class", modelled with the IEA 15 MW reference turbine (Gaertner et al. 2020) | Turbine class used in Baltic Power project; Vestas publishes no curves or drivetrain data |
+| Turbines | 34 × 15 MW-class, modelled with the IEA 15 MW reference turbine (Gaertner et al. 2020) | Turbine class used in Baltic Power project; Vestas publishes no curves or drivetrain data |
 | Array Voltage | 66 kV | Industry standard for large OWFs |
 | Export Voltage | 220 kV HVAC | Still AC at 108 km (≈ 13 % of the circuit rating lost to charging current; 99 % loaded at 510 MW) |
 | Export Cable Length | 108 km: 79.3 km subsea (round the west end of Ławica Słupska, across PZP_15 / PZP_10 at 62–67°, between PZP_23 and the military National Defence Area) + 28.7 km onshore from Darłówko-Wschodnie to PSE Krzemienica (Baltica 9+'s announced connection point) | Checked with the route check (2026-10-08); the earlier 76.5 km route to Słupsk crossed 24.5 km of the military area |
@@ -193,7 +193,7 @@ from py_wake.superposition_models import LinearSum
 from py_wake.turbulence_models import STF2017TurbulenceModel
 # Site: 12-sector wind rose (sector Weibull fits) — the same rose the dashboard shows
 
-# Turbine: SB-510 "V236 class" = IEA 15 MW reference turbine (official table)
+# Turbine: SB-510 "15 MW class" = IEA 15 MW reference turbine (official table)
 # - Rated: 15 MW | Diameter: 241.35 m | Hub: 150 m
 # - Cut-in: 3 m/s | Rated: 10.66 m/s | Cut-out: 25 m/s
 # - Ct ≈ 0.78 below rated, 0.77 at rated, 0.044 at cut-out (critical for wake deficits)

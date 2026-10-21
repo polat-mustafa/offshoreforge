@@ -8,7 +8,7 @@
  * Shell geometry uses drei's RoundedBox for the four box-like volumes (so
  * corners read as fillets, not 90° edges) and a custom ExtrudeGeometry for
  * the cowling top — a rounded-trapezoid front-view profile extruded along
- * the nacelle Z axis, giving the curved "Vestas helmet" silhouette.
+ * the nacelle Z axis, giving a generic curved, rounded cowling silhouette.
  *
  * Fallback geometry (box volumes; the IEA 15 MW nacelle is ≈ 673 t incl. the 369 t generator):
  *   Central bay:           9 m wide × 8 m tall × 20 m long (drivetrain/generator)
@@ -78,7 +78,7 @@ function buildCowlingGeometry(): THREE.ExtrudeGeometry {
   s.lineTo(-halfBaseW, 0);
 
   // Suppress unused-variable lint for the small top fillet (reserved for
-  // future Vestas-style sharper crease detail).
+  // future sharper crease detail).
   void filletTop;
 
   const geom = new THREE.ExtrudeGeometry(s, {
@@ -273,7 +273,7 @@ export const Nacelle = memo(function Nacelle({ viewerMode, selectedPart }: Nacel
         />
       </RoundedBox>
 
-      {/* Aerodynamic cowling — curved Vestas-helmet roof above the central bay.
+      {/* Aerodynamic cowling — curved generic roof above the central bay.
           Built once at module load (COWLING_GEOM) and shared. */}
       <mesh
         geometry={COWLING_GEOM}

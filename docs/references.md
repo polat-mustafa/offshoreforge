@@ -262,7 +262,7 @@ teaching values, listed on the pages and in the API response (`assumptions`, `ve
 
 - **[S1]** IEC 61400-1:2019 — Wind energy generation systems — Part 1: Design requirements.
 - **[S2]** IEC 61400-12-1 — Power performance measurements of electricity producing wind turbines.
-- **[S3]** Vestas V236-15.0 MW product data (15 MW, 236 m rotor) — identity of the "V236 class" case-study turbine only; all its numbers come from the IEA 15 MW reference [26] since Vestas publishes no curves or drivetrain data.
+- **[S3]** Vestas V236-15.0 MW product data (15 MW, 236 m rotor) — cited only as a public example of the 15 MW class (e.g. Baltic Power); SB-510 is vendor-neutral and all its numbers come from the IEA 15 MW reference [26].
 - **[S4]** IEC 60909-0:2016 — Short-circuit currents in three-phase a.c. systems — Part 0: Calculation of currents.
 - **[S5]** Commission Regulation (EU) 2016/631 — Network code on requirements for grid connection of generators (RfG).
 - **[S6]** PSE S.A. — *Instrukcja Ruchu i Eksploatacji Sieci Przesyłowej* (IRiESP) and national RfG requirements.

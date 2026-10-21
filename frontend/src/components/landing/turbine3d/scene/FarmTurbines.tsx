@@ -1,5 +1,5 @@
 /**
- * The rest of the wind farm around the viewed turbine — 33 V236s at their
+ * The rest of the wind farm around the viewed turbine — 33 identical turbines at their
  * real positions (6 D × 8 D grid, see constants/windFarmLayout), each with
  * its own live nacelle heading, rotor speed and pitch from the landing
  * simulation. Same Blender geometry as the hero turbine, drawn with GPU

@@ -14,7 +14,7 @@ import { SB510_EXPORT_KM } from "../../constants/windFarmLayout";
 import { REFERENCE_TURBINE, turbineById } from "../../utils/turbineCurves";
 import { SB510_WIND } from "../../constants/sb510Wind";
 
-/** Reference turbine (IEA 15 MW, "V236 class"): rotor diameter [m] and rating [MW]. */
+/** Reference turbine (IEA 15 MW, "15 MW class"): rotor diameter [m] and rating [MW]. */
 export const D = REFERENCE_TURBINE.rotorDiameterM;
 export const RATED_MW = REFERENCE_TURBINE.ratedKw / 1000;
 /** Teaching default for the spacing warning (illustrative; projects use 4–10 D by direction). */

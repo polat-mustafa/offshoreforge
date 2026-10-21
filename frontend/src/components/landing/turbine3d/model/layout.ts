@@ -25,7 +25,7 @@ export const SHAFT_TILT = (6 * Math.PI) / 180;
 export const PRECONE = (4 * Math.PI) / 180;
 /** Rotor radius of the modelled turbine [m] — IEA 15 MW, Ø 241.35 m. */
 export const ROTOR_RADIUS = REFERENCE_TURBINE.rotorDiameterM / 2;
-/** Radius of the Blender blade geometry (V236-class shape: 2.5 m root + 115.5 m blade, scaled ×1.023). */
+/** Radius of the Blender blade geometry (15 MW-class shape: 2.5 m root + 115.5 m blade, scaled ×1.023). */
 export const DRAWN_ROTOR_RADIUS = 118;
 /** Uniform scale that stretches the drawn blades to the modelled rotor (≈ 1.023). */
 export const BLADE_DRAW_SCALE = ROTOR_RADIUS / DRAWN_ROTOR_RADIUS;

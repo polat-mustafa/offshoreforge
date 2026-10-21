@@ -3,7 +3,7 @@ Wake modeling: reference turbine + PyWake BPA Gaussian wake analysis.
 
 This module wraps PyWake to run wake-effect simulations for a wind farm
 layout. The turbine comes from ``turbine_models`` (official IEA Wind Task 37
-tables); SB-510 uses the IEA 15 MW turbine as a "V236-class" machine, since
+tables); SB-510 uses the IEA 15 MW turbine as a "15 MW-class" machine, since
 Vestas publishes no V236 power or thrust curve.
 
 Physics
@@ -46,7 +46,7 @@ from numpy.typing import NDArray
 from app.services.p1.turbine_models import DEFAULT_TURBINE_ID, get_turbine
 from app.services.site_assessment.wind_climate import SB510_WEIBULL_A, SB510_WEIBULL_K
 
-# ── Default turbine (SB-510, "V236 class") ─────────────────────────
+# ── Default turbine (SB-510, "15 MW class") ─────────────────────────
 
 _DEFAULT = get_turbine(DEFAULT_TURBINE_ID)
 ROTOR_DIAMETER_M: float = _DEFAULT.rotor_diameter_m

@@ -1,6 +1,6 @@
 """Physics reference model of the SB-510 turbine — the "twin" in digital twin.
 
-SB-510's turbines are "V236 class"; Vestas publishes no rotor, control or drivetrain
+SB-510's turbines are "15 MW class"; Vestas publishes no rotor, control or drivetrain
 data, so the twin is the IEA 15 MW reference turbine (low-speed direct drive):
 official IEA Wind Task 37 data, ``services/p1/turbine_models.py``.
 

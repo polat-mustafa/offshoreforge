@@ -1,5 +1,5 @@
 /**
- * Complete SB-510 turbine scene graph (15 MW "V236 class", IEA 15 MW direct drive).
+ * Complete SB-510 turbine scene graph (15 MW-class, IEA 15 MW direct drive).
  *
  *   lean group (pivot at the mudline, y = −40 m) — static tower/monopile
  *   bending under rotor thrust (≈ 0.9 m at the tower top at rated) plus the
