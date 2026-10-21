@@ -18,7 +18,8 @@
     "demo:record": "node scripts/demo.mjs record",
     "demo:check": "node scripts/demo.mjs check",
     "build:demo": "node scripts/build-demo.mjs",
-    "i18n:missing": "node scripts/i18n-missing.mjs"
+    "i18n:missing": "node scripts/i18n-missing.mjs",
+    "search:index": "node scripts/search-index.mjs"
   },
   "dependencies": {
     "@deck.gl/core": "9.3.11",

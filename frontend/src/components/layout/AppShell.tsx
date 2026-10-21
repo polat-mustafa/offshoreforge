@@ -2,8 +2,9 @@
  * Application shell — ISA-101 dark control room layout.
  *
  * Structure:
- *   1. Top bar — brand, lifecycle breadcrumb, project, alarm state (only when
- *      not normal), tour, language (cycles lib/i18n LANGUAGES), palette toggle, clock
+ *   1. Top bar — brand, lifecycle breadcrumb, search (Ctrl K, components/search),
+ *      project, alarm state (only when not normal), tour, language (cycles
+ *      lib/i18n LANGUAGES), palette toggle, clock
  *   2. Sidebar — icon rail, expandable (constants/navigation)
  *   3. Content area — renders active route via <Outlet />
  *
@@ -27,6 +28,8 @@ import ProjectMenu from "../project/ProjectMenu";
 import TourMenu from "../../tour/TourMenu";
 import TourOverlay from "../../tour/TourOverlay";
 import TourWelcome from "../../tour/TourWelcome";
+import { FindBar } from "../search/FindBar";
+import { SearchPalette, SearchTrigger } from "../search/SearchPalette";
 import { Skeleton } from "../ui/Skeleton";
 import { StatusIndicator } from "../ui/StatusIndicator";
 import { navTrail } from "../../constants/navigation";
@@ -151,7 +154,7 @@ export default function AppShell() {
       )}
       {/* ── Top bar: menu (phones), brand, breadcrumb · project, alarm state, tour, palette, clock ── */}
       <header className="h-12 bg-bg-secondary border-b border-border-primary flex items-center justify-between gap-2 px-2 sm:px-4 shrink-0">
-        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+        <div className="flex min-w-0 items-center gap-2 overflow-hidden sm:gap-3">
           <button
             type="button"
             onClick={() => setNavOpen(true)}
@@ -183,6 +186,7 @@ export default function AppShell() {
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
+          <SearchTrigger />
           {/* Plant state only when something needs attention (ISA-101: normal is quiet) */}
           {headerStatus !== "normal" && (
             <StatusIndicator status={headerStatus} label={headerLabel} className="[&>span:last-child]:max-sm:hidden" />
@@ -245,7 +249,7 @@ export default function AppShell() {
       )}
 
       {/* ── Main Layout: Sidebar + Content ── */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="relative flex flex-1 overflow-hidden">
         {navOpen && (
           <div
             className="md:hidden fixed inset-0 z-[1999] bg-black/60"
@@ -261,6 +265,8 @@ export default function AppShell() {
             {lock ? <LockedPage title={currentLabel} lock={lock} /> : <Outlet />}
           </Suspense>
         </main>
+        {/* Highlight of a chosen search result, over the top right of the page */}
+        <FindBar />
       </div>
 
       {/* Guided tours (portals above everything) */}
@@ -268,6 +274,7 @@ export default function AppShell() {
       <TourOverlay />
       <ProjectChooser />
       <TutorPanel />
+      <SearchPalette />
     </div>
   );
 }
