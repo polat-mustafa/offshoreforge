@@ -51,21 +51,6 @@ def test_power_curve_fills_calm_bins_below_the_first_trained_one():
     assert np.all(np.isfinite(out))
 
 
-def test_every_scored_forecast_is_physical():
-    """0 ≤ P ≤ capacity for all forecasts, including the offline LSTM / TFT (rule 1)."""
-    r = evaluate_real_dayahead("dk2")
-    h = r.hourly
-    for name, v in h.items():
-        if name in ("time_utc", "fold", "scored", "shap_p50", "nwp_ws_mean", "actual_mw"):
-            continue
-        vals = np.asarray(v, dtype=float)
-        vals = vals[np.isfinite(vals)]
-        assert vals.min() >= 0.0, name
-        assert vals.max() <= CAPACITY_MW + 1e-6, name
-    # quantiles never cross
-    assert np.all(np.diff(h["xgb_q"][h["scored"]], axis=1) >= 0)
-
-
 def test_features_hold_no_measured_value():
     """Day-ahead leakage guard: only NWP issued the day before and the clock are inputs."""
     ds = load_dataset()
@@ -163,6 +148,19 @@ def test_endpoint_scores_every_forecast_on_the_same_hours(evidence):
     bands = zip(ser["p10_mw"], ser["p50_mw"], ser["p90_mw"], strict=True)
     assert all(a <= b <= c for a, b, c in bands)
     assert max(ser["p90_mw"]) <= body["source"]["capacity_mw"]
+
+    # 0 ≤ P ≤ capacity for every forecast behind the scores, including the offline LSTM / TFT
+    # (rule 1). Checked here, on the result the endpoint just computed (@cache): a test of its
+    # own would rerun the 2-minute cross-validation in another xdist worker.
+    h = evaluate_real_dayahead("dk2").hourly
+    for name, v in h.items():
+        if name in ("time_utc", "fold", "scored", "shap_p50", "nwp_ws_mean", "actual_mw"):
+            continue
+        vals = np.asarray(v, dtype=float)
+        vals = vals[np.isfinite(vals)]
+        assert vals.min() >= 0.0, name
+        assert vals.max() <= CAPACITY_MW + 1e-6, name
+    assert np.all(np.diff(h["xgb_q"][h["scored"]], axis=1) >= 0)  # quantiles never cross
 
 
 def test_deep_model_forecasts_are_bundled_per_hour():
