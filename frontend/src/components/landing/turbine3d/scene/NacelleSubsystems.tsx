@@ -15,6 +15,9 @@
  *   B10 Cable routing    — MV + control cables, ±3.5-turn twist loop
  *   B11 Fire suppression — 4 × 20 kg HFC-227ea cylinders (ISO 14520)
  *   B12 Lightning        — IEC 62305 LPL I down-conductor, 50 mm² copper
+ *
+ * Exploded view: each subsystem sits in an <Exploded> group (model/explode);
+ * the wall cable ladders, drawn at the assembled layout, hide while apart.
  */
 
 import { memo } from "react";
@@ -31,6 +34,8 @@ import {
 import { BoltRing } from "./nacelle/BoltRing";
 import { Nameplate } from "./nacelle/Nameplate";
 import { statusPalette } from "./palette";
+import { EXPLODE_YAW } from "../model/explode";
+import { Exploded, HideWhenApart } from "./Exploded";
 
 interface NacelleSubsystemsProps {
   selectedPart: TurbinePartId | null;
@@ -65,6 +70,7 @@ export const NacelleSubsystems = memo(function NacelleSubsystems({
 
       {/* ── B1 Hydraulic Power Unit (HPU) ────────────────────────── */}
       {/* Nacelle floor, starboard side, beside the main-bearing unit */}
+      <Exploded spec={EXPLODE_YAW.hpu}>
       <group position={[3.35, 147.8, 2.2]} name="hpu" onClick={pick("hpu")}>
         {/* Main pump/reservoir box — RAL 2010 safety orange painted steel */}
         <RoundedBox args={[1.5, 1.0, 1.2]} radius={0.04} smoothness={4} castShadow>
@@ -113,9 +119,11 @@ export const NacelleSubsystems = memo(function NacelleSubsystems({
           </group>
         ))}
       </group>
+      </Exploded>
 
       {/* ── B3 Control Cabinets (TCS + Safety PLC) ───────────────── */}
       {/* Port aft section, two side-by-side cabinets, axis-aligned to aft wall */}
+      <Exploded spec={EXPLODE_YAW.control_cabinet}>
       <group position={[-3.3, 149.0, -8.5]} name="control_cabinet" onClick={pick("control_cabinet")}>
         {/* Cabinet 1 — Main TCS (RAL 7035 light grey) */}
         <RoundedBox args={[0.8, 2.0, 0.6]} radius={0.03} smoothness={4} position={[-0.45, 0, 0]} castShadow>
@@ -158,10 +166,12 @@ export const NacelleSubsystems = memo(function NacelleSubsystems({
           ))
         )}
       </group>
+      </Exploded>
 
       {/* ── B8 UPS / Battery Cabinet ─────────────────────────────── */}
       {/* Mirror of the control cabinet: same z (-8.5), opposite x, deeper navy
           paint so it doesn't read toy-like next to the RAL 7035 cabinets. */}
+      <Exploded spec={EXPLODE_YAW.ups}>
       <group position={[3.3, 149.0, -8.5]} name="ups" onClick={pick("ups")}>
         <RoundedBox args={[1.0, 2.0, 0.6]} radius={0.035} smoothness={4} castShadow>
           <meshPhysicalMaterial
@@ -193,10 +203,12 @@ export const NacelleSubsystems = memo(function NacelleSubsystems({
           height={0.32}
         />
       </group>
+      </Exploded>
 
       {/* ── B4 Nacelle Transformer ────────────────────────────────── */}
       {/* → 66 kV, 16 MVA, Dyn11 (illustrative) — nacelle aft base, sits on a fabricated
           steel skid so the 16-tonne tank doesn't appear to float in the bay. */}
+      <Exploded spec={EXPLODE_YAW.transformer}>
       <group position={[0, 148.0, -11]} name="transformer" onClick={pick("transformer")}>
         {/* Support skid — 4 longitudinal I-beams + cross-members at y = -1.05 */}
         <mesh position={[0, -1.08, 0]} castShadow receiveShadow>
@@ -291,12 +303,14 @@ export const NacelleSubsystems = memo(function NacelleSubsystems({
           height={0.42}
         />
       </group>
+      </Exploded>
 
       {/* ── B5 Coolant skid / Heat Exchanger ──────────────────────── */}
       {/* Starboard wall mount, generator + converter water-glycol loop (no gear
           oil in a direct drive). Hung from 4 short brackets
           off the side compartment ceiling so the radiator visibly attaches to
           the nacelle structure rather than floating. */}
+      <Exploded spec={EXPLODE_YAW.coolant_skid}>
       <group position={[4.85, 151, -3]} name="coolant_skid" onClick={pick("coolant_skid")}>
         {/* 4 mounting brackets — stubs reaching back to the inner starboard wall
             at x=4.5. Bracket length 0.30 m → bracket inner face at x=4.5,
@@ -343,11 +357,13 @@ export const NacelleSubsystems = memo(function NacelleSubsystems({
           height={0.32}
         />
       </group>
+      </Exploded>
 
       {/* ── B7 Service Crane Rail ─────────────────────────────────── */}
       {/* Two I-beam rails at nacelle ceiling, y≈154.5, running along z.
           Length 14 m centred at z=-3 → Z extent −10 to +4 — ends at the
           rear-bay wall (z=-10) and 1 m clear of the front face. */}
+      <Exploded spec={EXPLODE_YAW.crane_rail}>
       <group name="crane_rail" onClick={pick("crane_rail")}>
         {/* Port rail */}
         <mesh position={[-2, 154.6, -3]} castShadow>
@@ -402,12 +418,14 @@ export const NacelleSubsystems = memo(function NacelleSubsystems({
           <meshStandardMaterial color="#78716c" roughness={0.4} metalness={0.8} />
         </mesh>
       </group>
+      </Exploded>
 
       {/* ── B9 Yaw Brake Calipers ─────────────────────────────────── */}
       {/* 4 × SAHR hydraulic disc calipers at 45°/135°/225°/315° on yaw ring.
           Each shows the caliper body + a polished piston rod feeding into the
           pad housing — the visual cue that these are powered actuators, not
           static blocks. */}
+      <Exploded spec={EXPLODE_YAW.yaw_brake}>
       {([45, 135, 225, 315] as number[]).map((deg) => {
         const rad = (deg * Math.PI) / 180;
         const r = 3.0;
@@ -448,10 +466,12 @@ export const NacelleSubsystems = memo(function NacelleSubsystems({
           </group>
         );
       })}
+      </Exploded>
 
       {/* ── B10 Cable Routing (nacelle floor → tower) ─────────────── */}
       {/* Bundle of 3 MV power cables + 1 control cable bundle */}
       {/* Hangs from the bedplate opening into the tower top, on the yaw axis */}
+      <Exploded spec={EXPLODE_YAW.cable_routing}>
       <group name="cable_routing" position={[0, -2.6, 5]} onClick={pick("cable_routing")}>
         {/* Twist loop arc — shows the cable loop for ±3.5 yaw rotations */}
         <mesh position={[0, 148.5, -5]} rotation={[Math.PI / 2, 0, 0]}>
@@ -481,11 +501,13 @@ export const NacelleSubsystems = memo(function NacelleSubsystems({
           <meshStandardMaterial color="#374151" roughness={0.8} metalness={0.1} />
         </mesh>
       </group>
+      </Exploded>
 
       {/* ── B11 Fire Suppression Cylinders ───────────────────────── */}
       {/* 4 × HFC-227ea cylinders, ceiling-mounted at uniform y=154.0 just below
           the cowling, each with a drop nozzle pointed at its protected zone.
           Standardised height + uniform manifold reads as engineered, not random. */}
+      <Exploded spec={EXPLODE_YAW.fire_suppression}>
       {(
         [
           [1.5,  154.0,  0.8, 150.4],   // Above the turret / main-bearing access
@@ -527,9 +549,11 @@ export const NacelleSubsystems = memo(function NacelleSubsystems({
           </mesh>
         </group>
       ))}
+      </Exploded>
 
       {/* ── B12 Lightning Down-Conductor ─────────────────────────── */}
       {/* 50 mm² copper conductor along nacelle exterior roof */}
+      <Exploded spec={EXPLODE_YAW.roof}>
       <group name="lightning_conductor" onClick={pick("lightning_conductor")}>
         {/* Horizontal run along nacelle top */}
         <mesh position={[0, 156.05, -4]} rotation={[Math.PI / 2, 0, 0]} castShadow>
@@ -548,10 +572,12 @@ export const NacelleSubsystems = memo(function NacelleSubsystems({
           <meshStandardMaterial color="#b45309" roughness={0.3} metalness={0.9} />
         </mesh>
       </group>
+      </Exploded>
 
       {/* ── Cable Ladders — port & starboard nacelle walls ────────── */}
       {/* Hot-dip galvanised steel perforated cable trays running the nacelle
           length. Provide realistic cable management and visual depth. */}
+      <HideWhenApart>
       {([-4.35, 4.35] as number[]).map((x) => (
         <group key={`ladder-${x}`}>
           {/* Longitudinal side rails — length 14 centred at z=-3 → Z −10..+4 */}
@@ -581,6 +607,7 @@ export const NacelleSubsystems = memo(function NacelleSubsystems({
           ))}
         </group>
       ))}
+      </HideWhenApart>
     </group>
   );
 });

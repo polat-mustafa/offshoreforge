@@ -42,7 +42,10 @@ interface FlyState {
   toLook: Vector3;
 }
 
-export function useCameraFlyTo(): (partId: TurbinePartId | null) => void {
+/** A part to frame, an explicit camera target, or null for the overview. */
+export type FlyTarget = TurbinePartId | CameraTarget | null;
+
+export function useCameraFlyTo(): (target: FlyTarget) => void {
   const { camera, controls, scene, clock } = useThree() as {
     camera: THREE.Camera;
     controls: { target: Vector3; update: () => void } | null;
@@ -85,15 +88,18 @@ export function useCameraFlyTo(): (partId: TurbinePartId | null) => void {
   });
 
   return useCallback(
-    (partId: TurbinePartId | null) => {
+    (to: FlyTarget) => {
       // Defer one frame so that matrixWorld on all meshes is up-to-date before
       // resolvePartCameraTarget reads bounds. Without this, switching from the
       // schematic back to 3D resolves against stale transforms and the camera
       // lands on the default overview instead of the selected part.
       requestAnimationFrame(() => {
-        const target: CameraTarget = partId
-          ? (resolvePartCameraTarget(partId, scene) ?? DEFAULT_CAMERA_TARGET)
-          : DEFAULT_CAMERA_TARGET;
+        const target: CameraTarget =
+          to === null
+            ? DEFAULT_CAMERA_TARGET
+            : typeof to === "string"
+              ? (resolvePartCameraTarget(to, scene) ?? DEFAULT_CAMERA_TARGET)
+              : to;
 
         const s = state.current;
         s.fromPos.copy(camera.position);

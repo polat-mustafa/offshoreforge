@@ -16,7 +16,9 @@
  * rear end shield, nose) is always drawn; cutaway / exploded modes swap the
  * end shield for half sections that show bearings, stator and windings.
  *
- * explodedOffset: slides the stator half aft for an exploded view.
+ * Exploded view (model/explode, shaft frame): the main shaft, brake, the
+ * generator's outer rotor and its stator slide toward the hub in that order,
+ * leaving the main bearings on the turret.
  */
 
 import { memo, useRef } from "react";
@@ -28,10 +30,11 @@ import type { TurbinePartId } from "../../../../constants/turbinePartEducation";
 import { useLandingStore } from "../../../../store/landingStore";
 import { rotorPhase } from "../hooks/useRotorSpin";
 import { useV236Model } from "../model/useV236Model";
+import { EXPLODE_SHAFT } from "../model/explode";
+import { Exploded } from "./Exploded";
 
 interface DrivetrainProps {
   selectedPart: TurbinePartId | null;
-  explodedOffset: number; // 0 = assembled, 1 = fully exploded
   /** Cutaway / exploded view: section the static parts. */
   internals: boolean;
 }
@@ -75,7 +78,7 @@ function Part({ geo, look, selected, vertexColors }: {
   );
 }
 
-export const Drivetrain = memo(function Drivetrain({ selectedPart, explodedOffset, internals }: DrivetrainProps) {
+export const Drivetrain = memo(function Drivetrain({ selectedPart, internals }: DrivetrainProps) {
   const model = useV236Model();
   const setSelectedPart = useLandingStore((s) => s.setSelectedTurbinePart);
 
@@ -98,16 +101,17 @@ export const Drivetrain = memo(function Drivetrain({ selectedPart, explodedOffse
     setSelectedPart(id);
   };
   const sel = (id: TurbinePartId) => selectedPart === id;
-  const exp = explodedOffset * 3;
 
   return (
     <group>
       {/* Main shaft (rotates with the hub) */}
-      <group name="shaft" onClick={pick("shaft")}>
-        <group ref={shaftRef}>
-          <Part geo={model.dt_shaft} look={STEEL} selected={sel("shaft")} />
+      <Exploded spec={EXPLODE_SHAFT.shaft}>
+        <group name="shaft" onClick={pick("shaft")}>
+          <group ref={shaftRef}>
+            <Part geo={model.dt_shaft} look={STEEL} selected={sel("shaft")} />
+          </group>
         </group>
-      </group>
+      </Exploded>
 
       {/* Main bearings on the stationary turret */}
       {internals && (
@@ -122,14 +126,16 @@ export const Drivetrain = memo(function Drivetrain({ selectedPart, explodedOffse
 
       {/* Direct-drive PMSG: outer rotor turns at rotor speed; stator on the turret */}
       <group name="generator" onClick={pick("generator")}>
-        <group ref={genRotorRef}>
-          <Part geo={model.gen_rotor} look={DARK} selected={sel("generator")} vertexColors />
-        </group>
+        <Exploded spec={EXPLODE_SHAFT.generator}>
+          <group ref={genRotorRef}>
+            <Part geo={model.gen_rotor} look={DARK} selected={sel("generator")} vertexColors />
+          </group>
+        </Exploded>
         {internals ? (
-          <group position={[0, 0, -exp]}>
+          <Exploded spec={EXPLODE_SHAFT.stator}>
             <Part geo={model.gen_stator} look={DARK} selected={sel("generator")} />
             <Part geo={model.gen_windings} look={COPPER} selected={sel("generator")} />
-          </group>
+          </Exploded>
         ) : (
           <>
             <Part geo={model.gen_cover} look={GENPAINT} selected={sel("generator")} />
@@ -139,9 +145,11 @@ export const Drivetrain = memo(function Drivetrain({ selectedPart, explodedOffse
       </group>
 
       {/* Rotor brake / lock calipers on the generator rotor disc */}
-      <group name="brake" onClick={pick("brake")}>
-        <Part geo={model.dt_calipers} look={RED} selected={sel("brake")} />
-      </group>
+      <Exploded spec={EXPLODE_SHAFT.brake}>
+        <group name="brake" onClick={pick("brake")}>
+          <Part geo={model.dt_calipers} look={RED} selected={sel("brake")} />
+        </group>
+      </Exploded>
     </group>
   );
 });

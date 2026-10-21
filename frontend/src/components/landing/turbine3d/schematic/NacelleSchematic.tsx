@@ -1,11 +1,12 @@
 /**
  * Nacelle engineering drawings — the "clarity mode" next to the 3D view.
  *
- * Three sheets drawn the way a turbine O&M manual draws them, each in an
+ * Four sheets drawn the way a turbine O&M manual draws them, each in an
  * ISO 5457 frame with zones and a title block, live values in callouts:
  *   E-01  single-line diagram (IEC 60617)
  *   M-01  drivetrain & yaw
  *   P-01  hydraulics & cooling P&ID (ISA-5.1)
+ *   A-01  nacelle anatomy: exploded parts, functions, masses, failure rates
  * Symbols are selectable: selection is shared with the 3D view and "Open in
  * 3D" flies the camera to the part. The drawing scales to any panel size
  * (fixed 1200 × 720 viewBox), so text never reflows or clips.
@@ -21,6 +22,7 @@ import { v236PowerChain } from "../../../../utils/landingPhysics";
 import { cn } from "../../../../lib/utils";
 import { CONNECTION_STYLES, NACELLE_CONNECTIONS, NACELLE_SCHEMATIC_PARTS, type SchematicPart } from "./schematicData";
 import { DrivetrainSheet, ElectricalSheet, HydraulicSheet, type SheetProps } from "./sheets";
+import { AnatomySheet } from "./anatomySheet";
 
 interface NacelleSchematicProps {
   turbineId: string;
@@ -34,6 +36,7 @@ const SHEETS = [
   { id: "E-01", label: "E-01 Single-line", Comp: ElectricalSheet },
   { id: "M-01", label: "M-01 Drivetrain & yaw", Comp: DrivetrainSheet },
   { id: "P-01", label: "P-01 Hydraulics & cooling", Comp: HydraulicSheet },
+  { id: "A-01", label: "A-01 Nacelle anatomy", Comp: AnatomySheet },
 ] as const;
 type SheetId = (typeof SHEETS)[number]["id"];
 
