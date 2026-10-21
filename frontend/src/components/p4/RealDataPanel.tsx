@@ -27,26 +27,72 @@ export default function RealDataPanel() {
   const [error, setError] = useState<string | null>(null);
   const [site, setSite] = useState("dk2");
   const [sites, setSites] = useState<RealSite[]>([]);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     getRealSites().then(setSites).catch(() => setSites([]));
   }, []);
   useEffect(() => {
+    // a slower answer for the previous site must not overwrite the current one
+    let live = true;
     setData(null);
+    setError(null);
     getRealDayAhead(site)
       .then((r) => {
+        if (!live) return;
         setData(r);
         setReal(r);
       })
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)));
-  }, [site, setReal]);
+      .catch((e: unknown) => {
+        if (live) setError(e instanceof Error ? e.message : String(e));
+      });
+    return () => {
+      live = false;
+    };
+  }, [site, setReal, attempt]);
 
-  if (error) return <p className="text-sm text-status-alarm">Real-data forecast failed: {error}</p>;
+  const picker =
+    sites.length > 1 ? (
+      <label className="flex items-center gap-2 text-sm text-text-secondary">
+        Real series
+        <select
+          value={site}
+          onChange={(e) => setSite(e.target.value)}
+          className="rounded-md border border-border-secondary bg-bg-tertiary px-2 py-1 text-sm text-text-primary"
+        >
+          {sites.map((x) => (
+            <option key={x.key} value={x.key}>
+              {x.title} — {x.capacity_mw.toFixed(0)} MW
+            </option>
+          ))}
+        </select>
+      </label>
+    ) : null;
+
+  if (error)
+    return (
+      <div className="space-y-3">
+        {picker}
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-status-alarm/50 bg-status-alarm/5 p-3 text-sm">
+          <span className="text-status-alarm">Real-data forecast failed: {error}</span>
+          <button
+            type="button"
+            onClick={() => setAttempt((a) => a + 1)}
+            className="rounded-md border border-border-secondary px-2.5 py-1 text-xs font-semibold text-text-primary hover:bg-bg-hover"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
   if (!data)
     return (
-      <p className="text-sm text-text-muted">
-        Training XGBoost on 20 000 real hours (5 time-ordered folds) — one to two minutes the first time, then cached…
-      </p>
+      <div className="space-y-3">
+        {picker}
+        <p className="text-sm text-text-muted">
+          Training XGBoost on the measured hours (5 time-ordered folds) — one to two minutes the first time, then cached…
+        </p>
+      </div>
     );
 
   const { source, scores, series } = data;
@@ -59,22 +105,7 @@ export default function RealDataPanel() {
 
   return (
     <div className="space-y-4">
-      {sites.length > 1 && (
-        <label className="flex items-center gap-2 text-sm text-text-secondary">
-          Real series
-          <select
-            value={site}
-            onChange={(e) => setSite(e.target.value)}
-            className="rounded-md border border-border-secondary bg-bg-tertiary px-2 py-1 text-sm text-text-primary"
-          >
-            {sites.map((x) => (
-              <option key={x.key} value={x.key}>
-                {x.title} — {x.capacity_mw.toFixed(0)} MW
-              </option>
-            ))}
-          </select>
-        </label>
-      )}
+      {picker}
       <div className="rounded-lg border border-border-primary bg-bg-secondary p-4 text-sm text-text-secondary">
         <p className="text-text-primary">
           Day-ahead forecast of <b>measured</b> Baltic offshore production — {source.farms.join(", ")} ={" "}

@@ -1,7 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import RealDataPanel from "../../../src/components/p4/RealDataPanel";
+import { getRealDayAhead } from "../../../src/services/forecastApi";
 import type { RealForecastResponse, RealModelScore } from "../../../src/services/forecastApi";
 import { useForecastStore } from "../../../src/store/forecastStore";
 
@@ -56,5 +57,13 @@ describe("RealDataPanel", () => {
     expect(screen.getByText(/Reliability/)).toBeDefined();
     // the academy's ensemble lesson reads the same result from the store
     expect(useForecastStore.getState().real?.source.scored_hours).toBe(16731);
+  });
+
+  it("shows a failure with a retry instead of a dead end", async () => {
+    vi.mocked(getRealDayAhead).mockRejectedValueOnce(new Error("Bad Gateway"));
+    render(<RealDataPanel />);
+    expect(await screen.findByText(/Real-data forecast failed: Bad Gateway/)).toBeDefined();
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    expect(await screen.findByText("Scores on the same 16,731 test hours")).toBeDefined();
   });
 });

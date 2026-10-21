@@ -11,6 +11,7 @@ from app.services.p4.real_data import (
     QUANTILES,
     _ensemble_weights,
     build_features,
+    evaluate_real_dayahead,
     load_dataset,
     persistence_24h,
     power_curve_forecast,
@@ -41,6 +42,28 @@ def test_power_curve_is_monotonic_enough():
     p = np.clip((ws - 3) ** 3, 0, 900)
     out = power_curve_forecast(ws, p, np.array([2.0, 8.0, 20.0]))
     assert out[0] < out[1] < out[2] <= 900
+
+
+def test_power_curve_fills_calm_bins_below_the_first_trained_one():
+    # no training hour below 2 m/s: a calm test hour still gets a number, not NaN
+    ws = np.linspace(2, 25, 2000)
+    out = power_curve_forecast(ws, np.clip((ws - 3) ** 3, 0, 900), np.array([0.4, 1.5]))
+    assert np.all(np.isfinite(out))
+
+
+def test_every_scored_forecast_is_physical():
+    """0 ≤ P ≤ capacity for all forecasts, including the offline LSTM / TFT (rule 1)."""
+    r = evaluate_real_dayahead("dk2")
+    h = r.hourly
+    for name, v in h.items():
+        if name in ("time_utc", "fold", "scored", "shap_p50", "nwp_ws_mean", "actual_mw"):
+            continue
+        vals = np.asarray(v, dtype=float)
+        vals = vals[np.isfinite(vals)]
+        assert vals.min() >= 0.0, name
+        assert vals.max() <= CAPACITY_MW + 1e-6, name
+    # quantiles never cross
+    assert np.all(np.diff(h["xgb_q"][h["scored"]], axis=1) >= 0)
 
 
 def test_features_hold_no_measured_value():

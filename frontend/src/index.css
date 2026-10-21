@@ -425,11 +425,13 @@ body {
   --viz-1: #1a9fb1;
   --viz-2: #d0712b;
   --viz-3: #6a80e0;
+  --viz-4: #b08a1e;
 }
 .theme-storybook .bw-viz {
   --viz-1: #2a78d6;
   --viz-2: #eb6834;
   --viz-3: #1baf7a;
+  --viz-4: #eda100;
 }
 
 /* Engineering drawings: energised lines march in the power-flow direction */

@@ -11,7 +11,7 @@ import { turbinePowerMW } from "../../../utils/landingPhysics";
  *     h_m   = regression tree fitted to (uᵢ, rᵢ)
  *     F_m   = F_{m−1} + η · h_m          η = learning rate (shrinkage)
  *
- * Toy problem: predict a V236's power [MW] from wind speed [m/s].
+ * Toy problem: predict an IEA 15 MW turbine's power [MW] from wind speed [m/s].
  */
 
 export interface Sample {
@@ -52,7 +52,7 @@ export function makeData(n: number, seed: number, sigma = 0.9): Sample[] {
   });
 }
 
-function fitTree(us: number[], rs: number[], depth: number, minLeaf = 4): TreeNode {
+export function fitTree(us: number[], rs: number[], depth: number, minLeaf = 4): TreeNode {
   const mean = rs.reduce((a, b) => a + b, 0) / Math.max(rs.length, 1);
   if (depth === 0 || us.length < 2 * minLeaf) return { leaf: mean };
   // best threshold by squared error, scanning sorted values
