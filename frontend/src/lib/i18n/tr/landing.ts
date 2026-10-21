@@ -87,6 +87,7 @@ export default {
   Waves: "Dalgalar",
   "Wake field": "İz alanı",
   "wake: slower air": "iz: yavaşlamış hava",
+  "opens details": "ayrıntıları açar",
   "Day / night": "Gündüz / gece",
   "AIS traffic (live)": "AIS trafiği (canlı)",
   "O&M vessels and crews": "İ&B gemileri ve ekipleri",
